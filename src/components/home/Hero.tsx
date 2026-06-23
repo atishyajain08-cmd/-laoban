@@ -118,7 +118,15 @@ export default function Hero() {
 
           <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
             <Link to="/shop">
-              <Button variant="secondary" size="lg">
+              <Button
+                variant="secondary"
+                size="lg"
+                style={{
+                  backgroundColor: 'var(--color-forest)',
+                  borderColor: 'var(--color-forest)',
+                  color: 'var(--color-ivory)',
+                }}
+              >
                 Shop Now
               </Button>
             </Link>
