@@ -21,7 +21,8 @@ export const useAuthStore = create<AuthState>()(
       user: null,
       isAuthenticated: false,
 
-      login: (email: string, _password: string) => {
+      login: (email: string, password: string) => {
+        void password;
         const stored = localStorage.getItem('laoban-users');
         const users: Array<{ name: string; email: string; password: string }> =
           stored ? JSON.parse(stored) : [];
