@@ -4,7 +4,7 @@
 
 A single-brand e-commerce storefront built with Vite + React + TypeScript, featuring a light 3D hero seal, smooth scrolling, and tasteful scroll animation. No backend — checkout ends at an order-summary screen.
 
-**Live site:** https://atishyajain08-cmd.github.io/laoban/
+**Live site:** https://atishyajain08-cmd.github.io/-laoban/
 
 ---
 
