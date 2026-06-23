@@ -9,7 +9,8 @@ export default defineConfig(({ command }) => ({
   base: command === 'build' ? '/-laoban/' : '/',
   plugins: [react()],
   server: {
-    port: 3000,
+    // Honour a PORT injected by tooling (e.g. the preview harness); default to 3000.
+    port: Number(process.env.PORT) || 3000,
     strictPort: false,
   },
 }))
