@@ -1,4 +1,4 @@
 window.LAOBAN_SUPABASE = {
-  url: "",
-  anonKey: ""
+  url: "https://lzbdavmurwmrsbfhubtu.supabase.co",
+  anonKey: "sb_publishable_4YMXFJhyg-Gf37mrOweG7g_ISIRDiOF"
 };
