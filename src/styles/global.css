@@ -240,3 +240,45 @@ img{display:block;max-width:100%}
 
 @media(max-width:1000px){.cat-tiles{grid-template-columns:repeat(2,1fr)}.mega{gap:26px;padding:22px 24px}}
 @media(max-width:760px){.cat-tiles{grid-template-columns:1fr 1fr;gap:10px}.announce{font-size:9px;letter-spacing:.08em}.subfilter-row{overflow:auto}.cat-tile-body .subtitle{font-size:18px}}
+
+/* Centered section heads + CTA + 3-up grid */
+.section-head--center{justify-content:center;text-align:center}
+.section-cta{text-align:center;margin-top:44px}
+@media(min-width:1001px){.product-grid--three{grid-template-columns:repeat(3,1fr)}}
+
+/* Testimonials */
+.testimonials{max-width:860px;text-align:center}
+.testimonial{margin-top:44px;animation:slideIn .45s var(--ease) both}
+.testimonial .stars{display:flex;justify-content:center;gap:5px;color:var(--accent);margin-bottom:22px}
+.testimonial-quote{font-family:var(--font-display);font-style:italic;font-size:clamp(20px,2.4vw,30px);line-height:1.5;color:var(--fg);max-width:760px;margin:0 auto}
+.testimonial-by{display:flex;align-items:center;justify-content:center;gap:14px;margin-top:30px}
+.testimonial-by .avatar{width:48px;height:48px;border-radius:50%;background:var(--surface-2);color:var(--ink);display:grid;place-items:center;font-family:var(--font-display);font-size:16px;font-weight:600;flex:0 0 auto}
+.testimonial-name{font-size:14px;font-weight:600;color:var(--fg);text-align:left}
+.testimonial-meta{font-size:12px;color:var(--muted);text-align:left;margin-top:2px}
+.testimonial-controls{display:flex;align-items:center;justify-content:center;gap:18px;margin-top:38px}
+.testimonial-controls>button{width:40px;height:40px;border:1px solid var(--line-dark);background:transparent;color:var(--fg);font-size:18px;line-height:1;transition:all var(--fast)}
+.testimonial-controls>button:hover{border-color:var(--accent);color:var(--accent)}
+.testimonial-controls .dots{display:flex;gap:8px}
+.testimonial-controls .dots button{width:8px;height:8px;border-radius:50%;border:0;padding:0;background:var(--surface-2);transition:background var(--fast)}
+.testimonial-controls .dots button.active{background:var(--accent)}
+@keyframes slideIn{from{opacity:0;transform:translateX(36px)}to{opacity:1;transform:none}}
+
+/* Instagram grid */
+.ig-follow{display:inline-block;margin-top:16px;font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);transition:color var(--fast)}
+.ig-follow:hover{color:var(--accent)}
+.ig-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:44px}
+.ig-tile{position:relative;aspect-ratio:1/1;overflow:hidden;background:var(--surface)}
+.ig-tile img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transition:transform .5s var(--ease)}
+.ig-tile:hover img{transform:scale(1.1)}
+.ig-overlay{position:absolute;inset:0;display:grid;place-items:center;color:#fff;background:rgba(26,26,26,0);opacity:0;transition:all var(--fast)}
+.ig-tile:hover .ig-overlay{background:rgba(26,26,26,.4);opacity:1}
+@media(min-width:768px){.ig-grid{grid-template-columns:repeat(6,1fr);gap:12px}}
+
+/* WhatsApp floating button */
+.whatsapp-fab{position:fixed;right:24px;bottom:24px;z-index:50;width:56px;height:56px;border-radius:50%;background:#25D366;color:#fff;display:grid;place-items:center;box-shadow:0 12px 28px rgba(0,0,0,.22);animation:fab-pop .6s cubic-bezier(.34,1.56,.64,1) .8s both;transition:transform .2s var(--ease),box-shadow .2s}
+.whatsapp-fab:hover{transform:scale(1.08);box-shadow:0 16px 34px rgba(0,0,0,.28)}
+.whatsapp-fab:active{transform:scale(.95)}
+@keyframes fab-pop{from{opacity:0;transform:scale(0)}to{opacity:1;transform:scale(1)}}
+
+@media(max-width:760px){.whatsapp-fab{right:16px;bottom:16px}}
+@media(prefers-reduced-motion:reduce){.testimonial{animation:none}.whatsapp-fab{animation:none}}

@@ -1,10 +1,12 @@
 import { lazy, Suspense, useState } from 'react';
 import { Link } from 'react-router-dom';
-import ProductCard from '../components/common/ProductCard';
-import { useCatalog } from '../hooks/useCatalog';
 import { categories } from '../data/categories';
 import { subscribe } from '../lib/supabase';
 import { asset } from '../utils/asset';
+import NewArrivals from '../components/home/NewArrivals';
+import BestSellers from '../components/home/BestSellers';
+import Testimonials from '../components/home/Testimonials';
+import InstagramGrid from '../components/home/InstagramGrid';
 
 const Scene = lazy(() => import('../components/three/Scene'));
 
@@ -17,7 +19,6 @@ const marquee = [
 ];
 
 export default function Home() {
-  const { products } = useCatalog();
   const [email, setEmail] = useState('');
   const [joined, setJoined] = useState(false);
 
@@ -30,6 +31,7 @@ export default function Home() {
 
   return (
     <>
+      {/* 1 — Hero */}
       <section className="hero">
         <div className="hero-media">
           <img src={asset('/assets/campaign/hero-black.png')} alt="Laoban structured black tee campaign" />
@@ -49,48 +51,14 @@ export default function Home() {
         <span className="hero-index">Designed in India · 2026</span>
       </section>
 
+      {/* 2 — Marquee */}
       <div className="marquee">
         <div className="marquee-track">
           {[...Array(2)].flatMap(() => marquee).map((x, i) => <span key={i}>{x}</span>)}
         </div>
       </div>
 
-      <section className="section">
-        <div className="shell">
-          <div className="section-head">
-            <div>
-              <p className="eyebrow">The essentials</p>
-              <h2 className="title" style={{ marginTop: 16 }}>Wardrobe<br /><span className="serif-italic">foundations.</span></h2>
-            </div>
-            <p className="body-large">
-              Pieces that carry a wardrobe—not a season. Precise proportion,
-              honest material, and quiet confidence in every stitch.
-            </p>
-          </div>
-          <div className="product-grid">
-            {products.filter((p) => p.featured).slice(0, 4).map((p) => <ProductCard key={p.id} product={p} />)}
-          </div>
-        </div>
-      </section>
-
-      <section className="editorial-grid">
-        <div className="editorial-image">
-          <img src={asset('/assets/campaign/forest-polo.png')} alt="Laoban knit polo campaign" />
-        </div>
-        <div className="editorial-copy">
-          <p className="eyebrow">The Laoban study · 01</p>
-          <div>
-            <h2 className="title">Built<br /><span className="serif-italic">to last.</span></h2>
-            <p className="body-large" style={{ marginTop: 28, color: 'rgba(250,243,224,.72)' }}>
-              Made for Indian days that run from the first meeting to the last
-              table. Composure, never stiffness.
-            </p>
-            <Link className="btn btn--ivory" style={{ marginTop: 34 }} to="/shop?category=Polos">Explore polos</Link>
-          </div>
-          <span className="eyebrow" style={{ color: 'rgba(250,243,224,.55)' }}>Knit polo / tailored ease</span>
-        </div>
-      </section>
-
+      {/* 3 — Shop by Category */}
       <section className="section light-panel">
         <div className="shell">
           <div className="section-head">
@@ -113,24 +81,51 @@ export default function Home() {
         </div>
       </section>
 
+      {/* 4 — Editorial interstitial */}
+      <section className="editorial-grid">
+        <div className="editorial-image">
+          <img src={asset('/assets/campaign/forest-polo.png')} alt="Laoban knit polo campaign" />
+        </div>
+        <div className="editorial-copy">
+          <p className="eyebrow">The Laoban study · 01</p>
+          <div>
+            <h2 className="title">Built<br /><span className="serif-italic">to last.</span></h2>
+            <p className="body-large" style={{ marginTop: 28, color: 'rgba(250,243,224,.72)' }}>
+              Made for Indian days that run from the first meeting to the last
+              table. Composure, never stiffness.
+            </p>
+            <Link className="btn btn--ivory" style={{ marginTop: 34 }} to="/shop?category=Polos">Explore polos</Link>
+          </div>
+          <span className="eyebrow" style={{ color: 'rgba(250,243,224,.55)' }}>Knit polo / tailored ease</span>
+        </div>
+      </section>
+
+      {/* 5 — New Arrivals */}
+      <NewArrivals />
+
+      {/* 6 — The Craft (3D statement) */}
       <section className="statement">
         <div className="statement-orbit">
           <Suspense fallback={null}><Scene /></Suspense>
         </div>
         <div className="shell" style={{ position: 'relative', zIndex: 2, pointerEvents: 'none' }}>
-          <p className="eyebrow">The Laoban standard</p>
+          <p className="eyebrow">The craft</p>
           <h2 className="title" style={{ marginTop: 28 }}>
-            Quiet quality.<br /><span className="serif-italic">Lasting confidence.</span>
+            Tailored in<br /><span className="serif-italic">every detail.</span>
           </h2>
         </div>
       </section>
 
+      {/* 7 — Best Sellers */}
+      <BestSellers />
+
+      {/* 8 — Newsletter */}
       <section className="section dark-panel">
         <div className="shell" style={{ maxWidth: 900, textAlign: 'center' }}>
-          <p className="eyebrow" style={{ color: 'var(--accent)' }}>Private access</p>
+          <p className="eyebrow" style={{ color: 'var(--accent)' }}>The inner circle</p>
           <h2 className="title" style={{ marginTop: 18, color: '#fff' }}>First word on the next drop.</h2>
           {joined ? (
-            <p className="body-large" style={{ marginTop: 24, color: 'rgba(250,243,224,.8)' }}>Thank you — you're on the list.</p>
+            <p className="body-large" style={{ marginTop: 24, color: 'rgba(250,243,224,.8)' }} role="status" aria-live="polite">Welcome to Laoban — you're on the list.</p>
           ) : (
             <form style={{ display: 'flex', maxWidth: 560, margin: '36px auto 0' }} onSubmit={join}>
               <input
@@ -147,6 +142,12 @@ export default function Home() {
           )}
         </div>
       </section>
+
+      {/* 9 — Testimonials */}
+      <Testimonials />
+
+      {/* 10 — Instagram */}
+      <InstagramGrid />
     </>
   );
 }

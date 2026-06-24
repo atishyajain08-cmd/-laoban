@@ -13,6 +13,7 @@ export default function Shop() {
   const subcategory = params.get('subcategory') || '';
   const q = (params.get('q') || '').toLowerCase();
   const onlyNew = params.get('filter') === 'new';
+  const onlyBest = params.get('filter') === 'bestseller';
   const activeCat = getCategory(category);
 
   function chooseCategory(c: string) {
@@ -32,15 +33,22 @@ export default function Shop() {
       .filter((p) => category === 'All' || p.category === category)
       .filter((p) => !subcategory || p.subcategory === subcategory || p.tags?.includes(subcategory))
       .filter((p) => !onlyNew || p.isNew)
+      .filter((p) => !onlyBest || p.bestSeller || p.featured)
       .filter((p) => !q || p.name.toLowerCase().includes(q) || p.category.toLowerCase().includes(q) || (p.subcategory || '').toLowerCase().includes(q));
     if (sort === 'low') x = [...x].sort((a, b) => a.price - b.price);
     if (sort === 'high') x = [...x].sort((a, b) => b.price - a.price);
     if (sort === 'new') x = [...x].sort((a, b) => Number(b.isNew) - Number(a.isNew));
     return x;
-  }, [products, category, subcategory, onlyNew, q, sort]);
+  }, [products, category, subcategory, onlyNew, onlyBest, q, sort]);
 
-  const heading = q ? `“${params.get('q')}”` : category === 'All' ? 'The edit.' : category;
-  const eyebrow = q ? 'Search results' : category === 'All' ? 'The complete wardrobe' : 'Collection';
+  const heading = q ? `“${params.get('q')}”`
+    : onlyNew ? 'New Arrivals'
+    : onlyBest ? 'Best Sellers'
+    : category === 'All' ? 'The edit.' : category;
+  const eyebrow = q ? 'Search results'
+    : onlyNew ? 'New In'
+    : onlyBest ? 'Most Wanted'
+    : category === 'All' ? 'The complete wardrobe' : 'Collection';
 
   return (
     <>
