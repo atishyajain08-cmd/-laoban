@@ -3,11 +3,9 @@ import { useFrame } from '@react-three/fiber';
 import { RoundedBox } from '@react-three/drei';
 import * as THREE from 'three';
 
-// Draw 老板 (gold) onto a cinnabar ground as a CanvasTexture. drei's <Text>
-// can't render CJK without a bundled glyph file, so we paint to a canvas
-// instead. The two glyphs are preloaded in index.html (Noto Serif SC subset),
-// so we redraw once document.fonts is ready.
-function useSealTexture() {
+// Gold "L" monogram medallion drawn to a CanvasTexture (Latin glyphs, no
+// special font needed; redrawn once Playfair is ready for the serif "L").
+function useMedallionTexture() {
   const [texture] = useState(() => {
     const size = 512;
     const canvas = document.createElement('canvas');
@@ -20,20 +18,28 @@ function useSealTexture() {
       const ctx = canvas.getContext('2d');
       if (!ctx) return;
       ctx.clearRect(0, 0, size, size);
-      // cinnabar ground
-      ctx.fillStyle = '#b5372b';
+      // charcoal ground
+      ctx.fillStyle = '#211f1c';
       ctx.fillRect(0, 0, size, size);
-      // inset gold keyline
-      ctx.strokeStyle = 'rgba(197,165,90,.5)';
-      ctx.lineWidth = 9;
-      ctx.strokeRect(36, 36, size - 72, size - 72);
-      // 老板, stacked, gold
-      ctx.fillStyle = '#e8cf86';
+      // gold keyline
+      ctx.strokeStyle = 'rgba(200,169,110,.55)';
+      ctx.lineWidth = 8;
+      ctx.strokeRect(40, 40, size - 80, size - 80);
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-      ctx.font = '700 205px "Noto Serif SC","Songti SC","STSong","SimSun",serif';
-      ctx.fillText('老', size / 2, size * 0.31);
-      ctx.fillText('板', size / 2, size * 0.71);
+      // serif "L"
+      ctx.fillStyle = '#d8be83';
+      ctx.font = '600 280px "Playfair Display", Georgia, serif';
+      ctx.fillText('L', size / 2, size * 0.44);
+      // wordmark
+      ctx.fillStyle = '#c8a96e';
+      ctx.font = '600 40px "Inter", system-ui, sans-serif';
+      ctx.letterSpacing = '14px';
+      ctx.fillText('LAOBAN', size / 2 + 7, size * 0.78);
+      ctx.font = '500 22px "Inter", system-ui, sans-serif';
+      ctx.letterSpacing = '8px';
+      ctx.fillStyle = 'rgba(200,169,110,.7)';
+      ctx.fillText('EST. INDIA', size / 2 + 4, size * 0.87);
       tex.needsUpdate = true;
     };
 
@@ -52,35 +58,35 @@ export default function SealModel() {
     () => matchMedia('(prefers-reduced-motion: reduce)').matches,
     []
   );
-  const tex = useSealTexture();
+  const tex = useMedallionTexture();
 
   useFrame(({ clock, pointer }) => {
     if (!ref.current) return;
     const t = reduced ? 0 : clock.elapsedTime;
     ref.current.rotation.y += (pointer.x * 0.22 + Math.sin(t * 0.25) * 0.18 - ref.current.rotation.y) * 0.035;
-    ref.current.rotation.x += (pointer.y * -0.12 + 0.08 - ref.current.rotation.x) * 0.035;
+    ref.current.rotation.x += (pointer.y * -0.12 + 0.06 - ref.current.rotation.x) * 0.035;
     ref.current.position.y = reduced ? 0 : Math.sin(t * 0.45) * 0.08;
   });
 
   return (
     <group ref={ref}>
-      {/* cinnabar lacquer body */}
-      <RoundedBox args={[1.2, 1.7, 0.42]} radius={0.06} smoothness={5}>
-        <meshStandardMaterial color="#7e241b" roughness={0.45} metalness={0.2} />
+      {/* charcoal medallion body */}
+      <RoundedBox args={[1.5, 1.5, 0.34]} radius={0.07} smoothness={5}>
+        <meshStandardMaterial color="#2a2824" roughness={0.5} metalness={0.3} />
       </RoundedBox>
-      {/* 老板 faces, front + back */}
-      <mesh position={[0, 0, 0.214]}>
-        <planeGeometry args={[1.14, 1.62]} />
-        <meshStandardMaterial map={tex} roughness={0.5} metalness={0.15} />
+      {/* monogram faces, front + back */}
+      <mesh position={[0, 0, 0.172]}>
+        <planeGeometry args={[1.42, 1.42]} />
+        <meshStandardMaterial map={tex} roughness={0.5} metalness={0.2} />
       </mesh>
-      <mesh position={[0, 0, -0.214]} rotation={[0, Math.PI, 0]}>
-        <planeGeometry args={[1.14, 1.62]} />
-        <meshStandardMaterial map={tex} roughness={0.5} metalness={0.15} />
+      <mesh position={[0, 0, -0.172]} rotation={[0, Math.PI, 0]}>
+        <planeGeometry args={[1.42, 1.42]} />
+        <meshStandardMaterial map={tex} roughness={0.5} metalness={0.2} />
       </mesh>
       {/* gold rim */}
       <mesh rotation={[Math.PI / 2, 0, 0]}>
-        <torusGeometry args={[1.16, 0.022, 16, 96]} />
-        <meshStandardMaterial color="#c5a55a" roughness={0.3} metalness={0.8} />
+        <torusGeometry args={[1.05, 0.02, 16, 96]} />
+        <meshStandardMaterial color="#c8a96e" roughness={0.28} metalness={0.85} />
       </mesh>
     </group>
   );
