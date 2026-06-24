@@ -1,7 +1,9 @@
-import { lazy, Suspense } from 'react';
+import { lazy, Suspense, useState } from 'react';
 import { Link } from 'react-router-dom';
 import ProductCard from '../components/common/ProductCard';
 import { useCatalog } from '../hooks/useCatalog';
+import { categories } from '../data/categories';
+import { subscribe } from '../lib/supabase';
 import { asset } from '../utils/asset';
 
 const Scene = lazy(() => import('../components/three/Scene'));
@@ -14,14 +16,18 @@ const marquee = [
   'Crafted in India',
 ];
 
-const categories: [string, string, string][] = [
-  ['01', 'T-Shirts', 'The daily foundation'],
-  ['02', 'Polos', 'Polish without the stiffness'],
-  ['03', 'Trousers', 'A sharper line'],
-];
-
 export default function Home() {
   const { products } = useCatalog();
+  const [email, setEmail] = useState('');
+  const [joined, setJoined] = useState(false);
+
+  async function join(e: React.FormEvent) {
+    e.preventDefault();
+    try { await subscribe(email.trim()); } catch { /* stored locally if offline */ }
+    setJoined(true);
+    setEmail('');
+  }
+
   return (
     <>
       <section className="hero">
@@ -62,7 +68,7 @@ export default function Home() {
             </p>
           </div>
           <div className="product-grid">
-            {products.filter(p => p.featured).slice(0, 4).map(p => <ProductCard key={p.id} product={p} />)}
+            {products.filter((p) => p.featured).slice(0, 4).map((p) => <ProductCard key={p.id} product={p} />)}
           </div>
         </div>
       </section>
@@ -85,6 +91,28 @@ export default function Home() {
         </div>
       </section>
 
+      <section className="section light-panel">
+        <div className="shell">
+          <div className="section-head">
+            <div>
+              <p className="eyebrow">Shop by category</p>
+              <h2 className="title" style={{ marginTop: 16 }}>Find your<br /><span className="serif-italic">fit.</span></h2>
+            </div>
+          </div>
+          <div className="cat-tiles">
+            {categories.map((c) => (
+              <Link key={c.slug} to={`/shop?category=${encodeURIComponent(c.name)}`} className="cat-tile">
+                <img src={c.image} alt={c.name} />
+                <div className="cat-tile-body">
+                  <h3 className="subtitle">{c.name}</h3>
+                  <span className="eyebrow">{c.blurb} →</span>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
       <section className="statement">
         <div className="statement-orbit">
           <Suspense fallback={null}><Scene /></Suspense>
@@ -97,42 +125,26 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="section light-panel">
-        <div className="shell">
-          <div className="section-head">
-            <div>
-              <p className="eyebrow">Build the wardrobe</p>
-              <h2 className="title" style={{ marginTop: 16 }}>Three precise<br /><span className="serif-italic">directions.</span></h2>
-            </div>
-          </div>
-          <div className="category-grid">
-            {categories.map(([n, c, t]) => (
-              <Link key={c} to={`/shop?category=${c}`} className="category-card">
-                <span className="category-number">{n}</span>
-                <div>
-                  <h3 className="subtitle">{t}</h3>
-                  <p className="eyebrow" style={{ marginTop: 18 }}>Shop {c} →</p>
-                </div>
-              </Link>
-            ))}
-          </div>
-        </div>
-      </section>
-
       <section className="section dark-panel">
         <div className="shell" style={{ maxWidth: 900, textAlign: 'center' }}>
           <p className="eyebrow" style={{ color: 'var(--accent)' }}>Private access</p>
           <h2 className="title" style={{ marginTop: 18, color: '#fff' }}>First word on the next drop.</h2>
-          <form style={{ display: 'flex', maxWidth: 560, margin: '36px auto 0' }} onSubmit={e => e.preventDefault()}>
-            <input
-              aria-label="Email address"
-              type="email"
-              required
-              placeholder="Email address"
-              style={{ flex: 1, minWidth: 0, background: 'transparent', border: '1px solid rgba(250,243,224,.28)', color: 'var(--ivory)', padding: '0 18px' }}
-            />
-            <button className="btn btn--accent">Join</button>
-          </form>
+          {joined ? (
+            <p className="body-large" style={{ marginTop: 24, color: 'rgba(250,243,224,.8)' }}>Thank you — you're on the list.</p>
+          ) : (
+            <form style={{ display: 'flex', maxWidth: 560, margin: '36px auto 0' }} onSubmit={join}>
+              <input
+                aria-label="Email address"
+                type="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="Email address"
+                style={{ flex: 1, minWidth: 0, background: 'transparent', border: '1px solid rgba(250,243,224,.28)', color: 'var(--ivory)', padding: '0 18px' }}
+              />
+              <button className="btn btn--accent">Join</button>
+            </form>
+          )}
         </div>
       </section>
     </>
