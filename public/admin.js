@@ -6,6 +6,7 @@
   const setup = document.querySelector("[data-admin-setup]");
   const loginForm = document.querySelector("[data-login-form]");
   const loginMessage = document.querySelector("[data-login-message]");
+  const resetPasswordButton = document.querySelector("[data-reset-password]");
   const addForm = document.querySelector("[data-add-form]");
   const addMessage = document.querySelector("[data-add-message]");
   const removeMessage = document.querySelector("[data-remove-message]");
@@ -183,6 +184,29 @@
   }
 
   sectionSelect?.addEventListener("change", updateArrivalCategoryField);
+
+  resetPasswordButton?.addEventListener("click", async () => {
+    if (!client || !loginForm) return;
+    const email = String(new FormData(loginForm).get("email") || "").trim();
+    if (!email) {
+      message(loginMessage, "Enter your admin email first, then click reset.", "error");
+      return;
+    }
+
+    resetPasswordButton.disabled = true;
+    message(loginMessage, "Sending password reset email...");
+
+    try {
+      const redirectTo = new URL("reset-password.html", window.location.href).toString();
+      const { error } = await client.auth.resetPasswordForEmail(email, { redirectTo });
+      if (error) throw error;
+      message(loginMessage, "Password reset email sent. Open the newest email and set a new password.", "success");
+    } catch (error) {
+      message(loginMessage, error.message || "Could not send password reset email.", "error");
+    } finally {
+      resetPasswordButton.disabled = false;
+    }
+  });
 
   loginForm?.addEventListener("submit", async (event) => {
     event.preventDefault();

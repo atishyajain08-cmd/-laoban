@@ -13,12 +13,14 @@ export interface Subcategory {
   slug: string;
 }
 
+const ASSET_BASE = "/-laoban/assets/campaign";
+
 export const categories: Category[] = [
   {
     id: "1",
     name: "Crew Neck",
     slug: "tops",
-    image: "/assets/campaign/hero-black.png",
+    image: `${ASSET_BASE}/hero-black.png`,
     description: "Classic crew-neck tees in every fit",
     subcategories: [
       { id: "1a", name: "Essential Fit", slug: "tshirts" },
@@ -30,7 +32,7 @@ export const categories: Category[] = [
     id: "2",
     name: "V-Neck",
     slug: "tops",
-    image: "/assets/campaign/ivory-tee.png",
+    image: `${ASSET_BASE}/ivory-tee.png`,
     description: "Sleek V-neck silhouettes for a modern look",
     subcategories: [
       { id: "2a", name: "Deep V", slug: "tshirts" },
@@ -41,7 +43,7 @@ export const categories: Category[] = [
     id: "3",
     name: "Oversized",
     slug: "tops",
-    image: "/assets/campaign/forest-polo.png",
+    image: `${ASSET_BASE}/forest-polo.png`,
     description: "Oversized & boxy fits for relaxed styling",
     subcategories: [
       { id: "3a", name: "Drop Shoulder", slug: "tshirts" },
@@ -53,7 +55,7 @@ export const categories: Category[] = [
     id: "4",
     name: "Henley & Muscle",
     slug: "tops",
-    image: "/assets/campaign/hero-black.png",
+    image: `${ASSET_BASE}/hero-black.png`,
     description: "Henleys and muscle tees with a sharper line",
     subcategories: [
       { id: "4a", name: "Henley", slug: "tshirts" },

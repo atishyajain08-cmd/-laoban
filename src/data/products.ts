@@ -18,9 +18,10 @@ export interface Product {
 }
 
 // Men's campaign shots (placeholders — swap for real per-product photos later).
-const A = "/assets/campaign/hero-black.png";
-const B = "/assets/campaign/ivory-tee.png";
-const C = "/assets/campaign/forest-polo.png";
+const ASSET_BASE = "/-laoban/assets/campaign";
+const A = `${ASSET_BASE}/hero-black.png`;
+const B = `${ASSET_BASE}/ivory-tee.png`;
+const C = `${ASSET_BASE}/forest-polo.png`;
 
 const SIZES = ["S", "M", "L", "XL", "XXL"];
 const BLACKS = [

@@ -10,9 +10,10 @@ export interface Testimonial {
 }
 
 // Avatars use the men's campaign shots as placeholders — swap for real portraits later.
-const AV = "/assets/campaign/hero-black.png";
-const AV2 = "/assets/campaign/ivory-tee.png";
-const AV3 = "/assets/campaign/forest-polo.png";
+const ASSET_BASE = "/-laoban/assets/campaign";
+const AV = `${ASSET_BASE}/hero-black.png`;
+const AV2 = `${ASSET_BASE}/ivory-tee.png`;
+const AV3 = `${ASSET_BASE}/forest-polo.png`;
 
 export const testimonials: Testimonial[] = [
   { id: "1", name: "Arjun Mehta", avatar: AV, rating: 5, text: "The Noir Essential Crew is exactly what I struggle to find in India — clean through the shoulders without being tight. It's become the first thing I reach for.", product: "Noir Essential Crew Tee", date: "2025-12-15", location: "Mumbai" },

@@ -2,7 +2,7 @@
 "use client";
 import { useRef } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
-import { Float, Text3D, Center, Environment } from "@react-three/drei";
+import { Float, Environment } from "@react-three/drei";
 import AnimatedSection from "@/components/ui/AnimatedSection";
 import * as THREE from "three";
 
@@ -49,23 +49,20 @@ function DiamondShape({ position }: { position: [number, number, number] }) {
   );
 }
 
-function BrandText() {
+function BrandMark() {
   return (
-    <Center>
-      <Text3D
-        font="/fonts/helvetiker_regular.typeface.json"
-        size={0.8}
-        height={0.15}
-        curveSegments={12}
-        bevelEnabled
-        bevelThickness={0.02}
-        bevelSize={0.02}
-        bevelSegments={5}
-      >
-        L
-        <meshStandardMaterial color="#C8A96E" metalness={0.8} roughness={0.2} />
-      </Text3D>
-    </Center>
+    <Float speed={1.2} rotationIntensity={0.15} floatIntensity={0.4}>
+      <group rotation={[0, 0, 0.08]}>
+        <mesh position={[-0.25, 0, 0]}>
+          <boxGeometry args={[0.22, 1.7, 0.18]} />
+          <meshStandardMaterial color="#C8A96E" metalness={0.8} roughness={0.2} />
+        </mesh>
+        <mesh position={[0.25, -0.74, 0]}>
+          <boxGeometry args={[1.0, 0.22, 0.18]} />
+          <meshStandardMaterial color="#C8A96E" metalness={0.8} roughness={0.2} />
+        </mesh>
+      </group>
+    </Float>
   );
 }
 
@@ -80,7 +77,7 @@ function Scene() {
       <GoldRing position={[2.5, -0.5, 0]} scale={0.5} />
       <DiamondShape position={[-1, -1, 1]} />
       <DiamondShape position={[1.5, 1, -1]} />
-      <BrandText />
+      <BrandMark />
     </>
   );
 }
