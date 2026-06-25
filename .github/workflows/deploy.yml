@@ -25,10 +25,12 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run build
+      # Next static export writes to ./out ; .nojekyll lets GitHub Pages serve _next/
+      - run: touch out/.nojekyll
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: dist
+          path: out
 
   deploy:
     needs: build

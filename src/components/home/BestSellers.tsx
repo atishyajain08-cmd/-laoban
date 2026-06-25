@@ -1,28 +1,37 @@
-import { Link } from 'react-router-dom';
-import ProductCard from '../common/ProductCard';
-import { useCatalog } from '../../hooks/useCatalog';
-import { getBestSellers } from '../../data/products';
-import { useStaggerReveal } from '../../hooks/useScrollAnimation';
+"use client";
+import AnimatedSection from "@/components/ui/AnimatedSection";
+import ProductCard from "@/components/product/ProductCard";
+import { getBestSellers } from "@/data/products";
+import Link from "next/link";
 
 export default function BestSellers() {
-  const { products } = useCatalog();
-  const items = getBestSellers(products).slice(0, 3);
-  const grid = useStaggerReveal<HTMLDivElement>();
-  if (!items.length) return null;
+  const products = getBestSellers();
+
   return (
-    <section className="section light-panel">
-      <div className="shell">
-        <div className="section-head section-head--center">
-          <div>
-            <p className="eyebrow">Most Wanted</p>
-            <h2 className="title" style={{ marginTop: 16 }}>Best<br /><span className="serif-italic">sellers.</span></h2>
-          </div>
+    <section className="py-20 md:py-28 bg-warm-white">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6">
+        <AnimatedSection className="text-center mb-14">
+          <p className="text-gold text-xs tracking-[0.3em] uppercase mb-3">
+            Most Loved
+          </p>
+          <h2 className="font-display text-3xl md:text-5xl text-charcoal">
+            Best Sellers
+          </h2>
+        </AnimatedSection>
+
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6 mb-12">
+          {products.map((product, i) => (
+            <ProductCard key={product.id} product={product} index={i} />
+          ))}
         </div>
-        <div className="product-grid product-grid--three" ref={grid}>
-          {items.map((p) => <ProductCard key={p.id} product={p} />)}
-        </div>
-        <div className="section-cta">
-          <Link className="btn btn--accent" to="/shop?filter=bestseller">Shop best sellers</Link>
+
+        <div className="text-center">
+          <Link
+            href="/shop?filter=bestseller"
+            className="inline-block px-8 py-3 bg-gold text-white text-sm tracking-[0.15em] uppercase hover:bg-gold-dark transition-colors duration-300"
+          >
+            Shop Best Sellers
+          </Link>
         </div>
       </div>
     </section>

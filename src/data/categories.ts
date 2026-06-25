@@ -1,73 +1,68 @@
-import { asset } from '../utils/asset';
-
-export interface SubCategory {
-  name: string;
-  slug: string;
-}
-
 export interface Category {
+  id: string;
   name: string;
   slug: string;
   image: string;
-  blurb: string;
-  subcategories: SubCategory[];
+  description: string;
+  subcategories: Subcategory[];
 }
 
-const img = {
-  black: asset('/assets/campaign/hero-black.png'),
-  ivory: asset('/assets/campaign/ivory-tee.png'),
-  forest: asset('/assets/campaign/forest-polo.png'),
-};
+export interface Subcategory {
+  id: string;
+  name: string;
+  slug: string;
+}
 
-// Top-level menswear taxonomy. `name` doubles as the value stored on a product's
-// `category`, and a subcategory `name` matches a product's `subcategory`.
 export const categories: Category[] = [
   {
-    name: 'T-Shirts',
-    slug: 'T-Shirts',
-    image: img.black,
-    blurb: 'The daily foundation',
+    id: "1",
+    name: "Crew Neck",
+    slug: "tops",
+    image: "/assets/campaign/hero-black.png",
+    description: "Classic crew-neck tees in every fit",
     subcategories: [
-      { name: 'Crew Neck', slug: 'Crew Neck' },
-      { name: 'V-Neck', slug: 'V-Neck' },
-      { name: 'Oversized', slug: 'Oversized' },
-      { name: 'Henley', slug: 'Henley' },
+      { id: "1a", name: "Essential Fit", slug: "tshirts" },
+      { id: "1b", name: "Relaxed Fit", slug: "tshirts" },
+      { id: "1c", name: "Slim Fit", slug: "tshirts" },
     ],
   },
   {
-    name: 'Polos',
-    slug: 'Polos',
-    image: img.forest,
-    blurb: 'Polish without the stiffness',
+    id: "2",
+    name: "V-Neck",
+    slug: "tops",
+    image: "/assets/campaign/ivory-tee.png",
+    description: "Sleek V-neck silhouettes for a modern look",
     subcategories: [
-      { name: 'Classic', slug: 'Classic' },
-      { name: 'Knitted', slug: 'Knitted' },
+      { id: "2a", name: "Deep V", slug: "tshirts" },
+      { id: "2b", name: "Classic V", slug: "tshirts" },
     ],
   },
   {
-    name: 'Shirts',
-    slug: 'Shirts',
-    image: img.ivory,
-    blurb: 'From desk to dinner',
+    id: "3",
+    name: "Oversized",
+    slug: "tops",
+    image: "/assets/campaign/forest-polo.png",
+    description: "Oversized & boxy fits for relaxed styling",
     subcategories: [
-      { name: 'Casual', slug: 'Casual' },
-      { name: 'Resort', slug: 'Resort' },
+      { id: "3a", name: "Drop Shoulder", slug: "tshirts" },
+      { id: "3b", name: "Boxy Fit", slug: "tshirts" },
+      { id: "3c", name: "Longline", slug: "tshirts" },
     ],
   },
   {
-    name: 'Trousers',
-    slug: 'Trousers',
-    image: img.black,
-    blurb: 'A sharper line',
+    id: "4",
+    name: "Henley & Muscle",
+    slug: "tops",
+    image: "/assets/campaign/hero-black.png",
+    description: "Henleys and muscle tees with a sharper line",
     subcategories: [
-      { name: 'Trousers', slug: 'Trousers' },
-      { name: 'Joggers', slug: 'Joggers' },
+      { id: "4a", name: "Henley", slug: "tshirts" },
+      { id: "4b", name: "Muscle Tee", slug: "tshirts" },
+      { id: "4c", name: "Pocket Tee", slug: "tshirts" },
     ],
   },
 ];
 
-export const categoryNames: string[] = ['All', ...categories.map((c) => c.name)];
-
-export function getCategory(name: string): Category | undefined {
-  return categories.find((c) => c.name === name);
+export function getCategoryBySlug(slug: string): Category | undefined {
+  return categories.find((c) => c.slug === slug);
 }

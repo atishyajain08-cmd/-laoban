@@ -1,28 +1,37 @@
-import { Link } from 'react-router-dom';
-import ProductCard from '../common/ProductCard';
-import { useCatalog } from '../../hooks/useCatalog';
-import { getNewArrivals } from '../../data/products';
-import { useStaggerReveal } from '../../hooks/useScrollAnimation';
+"use client";
+import AnimatedSection from "@/components/ui/AnimatedSection";
+import ProductCard from "@/components/product/ProductCard";
+import { getNewArrivals } from "@/data/products";
+import Link from "next/link";
 
 export default function NewArrivals() {
-  const { products } = useCatalog();
-  const items = getNewArrivals(products).slice(0, 4);
-  const grid = useStaggerReveal<HTMLDivElement>();
-  if (!items.length) return null;
+  const products = getNewArrivals();
+
   return (
-    <section className="section">
-      <div className="shell">
-        <div className="section-head section-head--center">
-          <div>
-            <p className="eyebrow">New In</p>
-            <h2 className="title" style={{ marginTop: 16 }}>New<br /><span className="serif-italic">arrivals.</span></h2>
-          </div>
+    <section className="py-20 md:py-28 bg-ivory">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6">
+        <AnimatedSection className="text-center mb-14">
+          <p className="text-gold text-xs tracking-[0.3em] uppercase mb-3">
+            Just Dropped
+          </p>
+          <h2 className="font-display text-3xl md:text-5xl text-charcoal">
+            New Arrivals
+          </h2>
+        </AnimatedSection>
+
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6 mb-12">
+          {products.map((product, i) => (
+            <ProductCard key={product.id} product={product} index={i} />
+          ))}
         </div>
-        <div className="product-grid" ref={grid}>
-          {items.map((p) => <ProductCard key={p.id} product={p} />)}
-        </div>
-        <div className="section-cta">
-          <Link className="btn btn--outline" to="/shop?filter=new">Shop all new arrivals</Link>
+
+        <div className="text-center">
+          <Link
+            href="/shop?filter=new"
+            className="inline-block px-8 py-3 border-2 border-charcoal text-charcoal text-sm tracking-[0.15em] uppercase hover:bg-charcoal hover:text-white transition-colors duration-300"
+          >
+            View All New Arrivals
+          </Link>
         </div>
       </div>
     </section>

@@ -1,42 +1,67 @@
-import { asset } from '../utils/asset';
-
 export interface Product {
-  id:string; name:string; slug:string; price:number; originalPrice?:number; description:string;
-  category:string; subcategory?:string; colors:string[]; sizes:string[]; images:string[];
-  featured:boolean; isNew:boolean; bestSeller?:boolean; tags:string[]; fabric:string; fit:string; care:string; stock:number;
+  id: string;
+  name: string;
+  slug: string;
+  price: number;
+  originalPrice?: number;
+  description: string;
+  category: string;
+  subcategory: string;
+  images: string[];
+  sizes: string[];
+  colors: { name: string; hex: string }[];
+  rating: number;
+  reviews: number;
+  badge?: "new" | "bestseller" | "sale";
+  inStock: boolean;
+  deliveryDays: number;
 }
 
-const campaign = {
-  black: asset('/assets/campaign/hero-black.png'),
-  ivory: asset('/assets/campaign/ivory-tee.png'),
-  forest: asset('/assets/campaign/forest-polo.png'),
-};
+// Men's campaign shots (placeholders — swap for real per-product photos later).
+const A = "/assets/campaign/hero-black.png";
+const B = "/assets/campaign/ivory-tee.png";
+const C = "/assets/campaign/forest-polo.png";
 
-// Sample catalog shown until real products are added through the Admin screen
-// (once the Supabase `products` table has rows, those replace these).
-export const fallbackProducts: Product[] = [
-  {id:'tee-structure',name:'The Structure Tee',slug:'structure-tee',price:1790,description:'A precise everyday tee cut from dense 220 GSM combed cotton. Clean through the shoulder, relaxed through the body, and built to keep its line.',category:'T-Shirts',subcategory:'Crew Neck',colors:['Obsidian','Ivory'],sizes:['S','M','L','XL','XXL'],images:[campaign.black,campaign.ivory],featured:true,isNew:true,tags:['Crew Neck','heavyweight'],fabric:'220 GSM combed cotton',fit:'Relaxed structured fit',care:'Cold wash. Dry in shade.',stock:42},
-  {id:'tee-signature',name:'Signature Crew',slug:'signature-crew',price:1490,description:'The foundation piece. Premium compact cotton, a collar that holds, and proportions refined for Indian frames.',category:'T-Shirts',subcategory:'Crew Neck',colors:['Ivory','Obsidian'],sizes:['S','M','L','XL','XXL'],images:[campaign.ivory,campaign.black],featured:true,isNew:false,bestSeller:true,tags:['Crew Neck','crew'],fabric:'180 GSM compact cotton',fit:'Regular fit',care:'Machine wash cold.',stock:56},
-  {id:'polo-knitted',name:'Knitted Authority Polo',slug:'knitted-authority-polo',price:2790,description:'A fine-gauge textured polo with an open collar and a quiet architectural drape. Made for rooms where details matter.',category:'Polos',subcategory:'Knitted',colors:['Forest','Black'],sizes:['S','M','L','XL'],images:[campaign.forest,campaign.black],featured:true,isNew:true,bestSeller:true,tags:['Knitted','knit'],fabric:'Cotton-viscose knit',fit:'Tailored relaxed fit',care:'Gentle hand wash.',stock:28},
-  {id:'tee-oversized',name:'Heavyweight Oversized Tee',slug:'heavyweight-oversized-tee',price:1990,description:'Dropped shoulders, considered volume, and a compact cotton surface. Oversized without losing intention.',category:'T-Shirts',subcategory:'Oversized',colors:['Obsidian','Ivory'],sizes:['S','M','L','XL'],images:[campaign.black,campaign.ivory],featured:true,isNew:false,bestSeller:true,tags:['Oversized','heavyweight'],fabric:'240 GSM compact cotton',fit:'Oversized box fit',care:'Cold wash inside out.',stock:34},
-  {id:'polo-pique',name:'Executive Piqué Polo',slug:'executive-pique-polo',price:2390,description:'Breathable piqué cotton, a reinforced collar, and discreet tonal finishing. A polished answer to Indian summers.',category:'Polos',subcategory:'Classic',colors:['Forest','Ivory'],sizes:['S','M','L','XL','XXL'],images:[campaign.forest,campaign.ivory],featured:false,isNew:false,bestSeller:true,tags:['Classic','smart-casual'],fabric:'Premium cotton piqué',fit:'Modern regular fit',care:'Machine wash cold.',stock:31},
-  {id:'shirt-resort',name:'After Hours Resort Shirt',slug:'after-hours-resort-shirt',price:2990,description:'A fluid open-collar shirt for warm evenings, cut with a clean straight hem and effortless movement.',category:'Shirts',subcategory:'Resort',colors:['Black','Forest'],sizes:['S','M','L','XL'],images:[campaign.forest,campaign.black],featured:false,isNew:true,tags:['Resort','evening'],fabric:'Tencel-cotton twill',fit:'Relaxed fit',care:'Gentle machine wash.',stock:19},
-  {id:'tee-long',name:'Long Sleeve Essential',slug:'long-sleeve-essential',price:1990,description:'A transitional essential with a refined neckline, full-length sleeve, and enough weight to wear on its own.',category:'T-Shirts',subcategory:'Henley',colors:['Ivory','Obsidian'],sizes:['S','M','L','XL','XXL'],images:[campaign.ivory,campaign.black],featured:false,isNew:false,bestSeller:true,tags:['Henley','long-sleeve'],fabric:'200 GSM cotton jersey',fit:'Regular fit',care:'Machine wash cold.',stock:38},
-  {id:'trouser-pleat',name:'Single Pleat Trouser',slug:'single-pleat-trouser',price:3490,description:'A clean tapered trouser with a single forward pleat and a comfortable mid rise. Formal enough, never stiff.',category:'Trousers',subcategory:'Trousers',colors:['Charcoal','Black'],sizes:['30','32','34','36','38'],images:[campaign.black,campaign.forest],featured:false,isNew:true,tags:['Trousers','tailoring'],fabric:'Wool-touch stretch twill',fit:'Tapered fit',care:'Dry clean preferred.',stock:24},
+const SIZES = ["S", "M", "L", "XL", "XXL"];
+const BLACKS = [
+  { name: "Jet Black", hex: "#0A0A0A" },
+  { name: "Charcoal", hex: "#2D2D2D" },
+];
+const NEUTRALS = [
+  { name: "Ivory", hex: "#F2EFE7" },
+  { name: "Stone", hex: "#C9C4B8" },
 ];
 
-export const products = fallbackProducts;
-export const sizes = ['S','M','L','XL','XXL'] as const;
-export const priceRanges = [
-  {label:'Under ₹2,000',min:0,max:2000},
-  {label:'₹2,000 – ₹3,000',min:2000,max:3000},
-  {label:'Above ₹3,000',min:3000,max:Infinity},
-] as const;
+export const products: Product[] = [
+  { id: "1", name: "Noir Essential Crew Tee", slug: "noir-essential-crew-tee", price: 1299, originalPrice: 1999, description: "The quintessential black crew-neck tee in 100% premium Supima cotton. Ultra-soft hand-feel, a clean shoulder line, and a relaxed-but-sharp body. Pre-shrunk and colour-locked for a lasting deep black. The everyday foundation of a men's wardrobe.", category: "tops", subcategory: "tshirts", images: [A, B], sizes: SIZES, colors: BLACKS, rating: 4.8, reviews: 324, badge: "bestseller", inStock: true, deliveryDays: 2 },
+  { id: "2", name: "Midnight V-Neck Tee", slug: "midnight-v-neck-tee", price: 1499, description: "A sleek V-neck in deep midnight black, cut from a buttery cotton-modal blend. Slim through the body with a slightly elongated hem for a modern silhouette.", category: "tops", subcategory: "tshirts", images: [B, A], sizes: SIZES, colors: BLACKS, rating: 4.9, reviews: 187, badge: "new", inStock: true, deliveryDays: 2 },
+  { id: "3", name: "Shadow Oversized Tee", slug: "shadow-oversized-tee", price: 1799, originalPrice: 2499, description: "An oversized tee with dropped shoulders and a boxy silhouette. Heavyweight 240 GSM cotton for a premium, structured drape. Built for relaxed weekend layering.", category: "tops", subcategory: "tshirts", images: [A, C], sizes: SIZES, colors: BLACKS, rating: 4.6, reviews: 265, badge: "sale", inStock: true, deliveryDays: 3 },
+  { id: "4", name: "Obsidian Boxy Tee", slug: "obsidian-boxy-tee", price: 1199, description: "A trend-forward boxy tee with a raw-cut hem and a clean straight body. Soft ringspun cotton with an easy drape. The effortless go-to for off-duty days.", category: "tops", subcategory: "tshirts", images: [C, A], sizes: SIZES, colors: BLACKS, rating: 4.7, reviews: 193, badge: "bestseller", inStock: true, deliveryDays: 2 },
+  { id: "5", name: "Eclipse Tailored Tee", slug: "eclipse-tailored-tee", price: 1399, description: "A tailored black tee with a modern crew neck, cut from a cotton-elastane blend that moves with you. Refined seam detailing and a clean taper for a sharp line.", category: "tops", subcategory: "tshirts", images: [A, B], sizes: SIZES, colors: BLACKS, rating: 4.5, reviews: 156, badge: "new", inStock: true, deliveryDays: 2 },
+  { id: "6", name: "Carbon Long Sleeve Tee", slug: "carbon-long-sleeve-tee", price: 1699, description: "A versatile long-sleeve tee in lightweight jersey cotton with a slightly relaxed fit. Perfect for layering or wearing solo in cooler weather.", category: "tops", subcategory: "tshirts", images: [B, C], sizes: SIZES, colors: BLACKS, rating: 4.8, reviews: 178, badge: "new", inStock: true, deliveryDays: 3 },
+  { id: "7", name: "Velvet Touch Black Tee", slug: "velvet-touch-black-tee", price: 999, originalPrice: 1499, description: "An unbelievably soft velvet-finish black tee with a micro-suede hand-feel. Relaxed crew neck with reinforced shoulder seams. As luxurious as it looks.", category: "tops", subcategory: "tshirts", images: [A, C], sizes: SIZES, colors: BLACKS, rating: 4.4, reviews: 301, badge: "sale", inStock: true, deliveryDays: 2 },
+  { id: "8", name: "Phantom Pocket Tee", slug: "phantom-pocket-tee", price: 1599, description: "A classic pocket tee elevated with premium organic cotton and a single chest-pocket detail. Midweight fabric with a lived-in softness from the first wear.", category: "tops", subcategory: "tshirts", images: [B, A], sizes: SIZES, colors: BLACKS, rating: 4.9, reviews: 145, inStock: true, deliveryDays: 3 },
+  { id: "9", name: "Raven Muscle Tee", slug: "raven-muscle-tee", price: 1099, description: "A bold muscle tee with elongated armholes and a straight hem. Breathable cotton for all-day comfort. A statement layering piece or standalone summer essential.", category: "tops", subcategory: "tshirts", images: [C, B], sizes: SIZES, colors: BLACKS, rating: 4.6, reviews: 132, inStock: true, deliveryDays: 2 },
+  { id: "10", name: "Ivory Heavyweight Tee", slug: "ivory-heavyweight-tee", price: 1690, description: "A clean ivory tee in dense 220 GSM combed cotton. Holds its line through the shoulder and body. The neutral counterpoint to every black in the rotation.", category: "tops", subcategory: "tshirts", images: [B, A], sizes: SIZES, colors: NEUTRALS, rating: 4.7, reviews: 121, badge: "new", inStock: true, deliveryDays: 2 },
+  { id: "11", name: "Onyx Henley Tee", slug: "onyx-henley-tee", price: 1890, description: "A three-button henley in soft slub cotton with a refined placket. Quietly elevated — works on its own or under an overshirt.", category: "tops", subcategory: "tshirts", images: [A, C], sizes: SIZES, colors: BLACKS, rating: 4.8, reviews: 98, badge: "bestseller", inStock: true, deliveryDays: 3 },
+  { id: "12", name: "Slate Crew Tee", slug: "slate-crew-tee", price: 1290, originalPrice: 1690, description: "A mid-weight crew tee in a muted slate tone. Compact cotton with a regular fit refined for Indian frames. An easy everyday staple.", category: "tops", subcategory: "tshirts", images: [C, A], sizes: SIZES, colors: NEUTRALS, rating: 4.5, reviews: 110, badge: "sale", inStock: true, deliveryDays: 2 },
+];
 
-// Selectors used by the home rails. These operate on the static sample set;
-// the live home page passes the Supabase-loaded catalog into the same filters.
-export const getNewArrivals = (list: Product[] = products) => list.filter((p) => p.isNew);
-export const getBestSellers = (list: Product[] = products) => {
-  const flagged = list.filter((p) => p.bestSeller);
-  return flagged.length ? flagged : list.filter((p) => p.featured);
-};
+export function getProductsByCategory(category: string): Product[] {
+  return products.filter((p) => p.category === category);
+}
+export function getProductBySlug(slug: string): Product | undefined {
+  return products.find((p) => p.slug === slug);
+}
+export function getProductById(id: string): Product | undefined {
+  return products.find((p) => p.id === id);
+}
+export function getNewArrivals(): Product[] {
+  return products.filter((p) => p.badge === "new");
+}
+export function getBestSellers(): Product[] {
+  return products.filter((p) => p.badge === "bestseller");
+}
+export function getSaleProducts(): Product[] {
+  return products.filter((p) => p.badge === "sale");
+}
