@@ -13,7 +13,7 @@
   }
   const client = isConfigured ? window.supabase.createClient(config.url, config.anonKey, {
     auth: {
-      detectSessionInUrl: false,
+      detectSessionInUrl: isAdmin,
       persistSession: isAdmin,
       storage: isAdmin ? sessionStorage : undefined,
       storageKey: isAdmin ? `laoban-admin-${storageKey}` : "laoban-catalog"

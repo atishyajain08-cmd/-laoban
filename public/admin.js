@@ -7,6 +7,7 @@
   const loginForm = document.querySelector("[data-login-form]");
   const loginMessage = document.querySelector("[data-login-message]");
   const resetPasswordButton = document.querySelector("[data-reset-password]");
+  const googleLoginButton = document.querySelector("[data-google-login]");
   const addForm = document.querySelector("[data-add-form]");
   const addMessage = document.querySelector("[data-add-message]");
   const removeMessage = document.querySelector("[data-remove-message]");
@@ -205,6 +206,27 @@
       message(loginMessage, error.message || "Could not send password reset email.", "error");
     } finally {
       resetPasswordButton.disabled = false;
+    }
+  });
+
+  googleLoginButton?.addEventListener("click", async () => {
+    if (!client) return;
+    googleLoginButton.disabled = true;
+    message(loginMessage, "Opening Google sign in...");
+
+    try {
+      const redirectTo = new URL("admin.html", window.location.href).toString();
+      const { error } = await client.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo,
+          queryParams: { prompt: "select_account" }
+        }
+      });
+      if (error) throw error;
+    } catch (error) {
+      googleLoginButton.disabled = false;
+      message(loginMessage, error.message || "Could not open Google sign in.", "error");
     }
   });
 
