@@ -66,7 +66,11 @@ export default function Footer() {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
           {/* Brand */}
           <div className="col-span-2 md:col-span-1">
-            <h2 className="font-display text-2xl tracking-[0.15em] mb-4">LAOBAN</h2>
+            <img
+              src="/-laoban/assets/brand/laoban-premium-logo.png"
+              alt="Laoban premium logo"
+              className="mb-5 w-44 rounded-xl border border-white/10 object-cover shadow-[0_20px_60px_rgba(0,0,0,0.35)]"
+            />
             <p className="text-white/50 text-sm leading-relaxed mb-6">
               Redefining modern luxury fashion for the confident man. Premium quality, timeless style.
             </p>

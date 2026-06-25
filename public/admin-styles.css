@@ -1908,11 +1908,16 @@ blockquote cite {
 }
 
 .admin-header .brand--logo {
-  width: 150px;
+  width: 58px;
+  height: 58px;
+  border-radius: 999px;
+  box-shadow: 0 14px 38px rgba(0, 0, 0, 0.24);
 }
 
 .admin-header .brand--logo img {
   filter: none;
+  transform: none;
+  object-fit: cover;
 }
 
 .admin-header > span {

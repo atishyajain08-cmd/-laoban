@@ -52,7 +52,7 @@ function DiamondShape({ position }: { position: [number, number, number] }) {
 function BrandMark() {
   return (
     <Float speed={1.2} rotationIntensity={0.15} floatIntensity={0.4}>
-      <group rotation={[0, 0, 0.08]}>
+      <group rotation={[0, 0, 0.08]} scale={2.5}>
         <mesh position={[-0.25, 0, 0]}>
           <boxGeometry args={[0.22, 1.7, 0.18]} />
           <meshStandardMaterial color="#C8A96E" metalness={0.8} roughness={0.2} />
@@ -73,10 +73,10 @@ function Scene() {
       <directionalLight position={[10, 10, 5]} intensity={1.2} />
       <pointLight position={[-10, -10, -5]} intensity={0.5} color="#C8A96E" />
       <Environment preset="studio" />
-      <GoldRing position={[-2.5, 0.5, 0]} scale={0.7} />
-      <GoldRing position={[2.5, -0.5, 0]} scale={0.5} />
-      <DiamondShape position={[-1, -1, 1]} />
-      <DiamondShape position={[1.5, 1, -1]} />
+      <GoldRing position={[-3.6, 0.75, -0.2]} scale={0.9} />
+      <GoldRing position={[3.5, -0.75, -0.2]} scale={0.7} />
+      <DiamondShape position={[-2.1, -1.8, 1]} />
+      <DiamondShape position={[2.35, 1.75, -1]} />
       <BrandMark />
     </>
   );
@@ -119,8 +119,8 @@ export default function ThreeDSection() {
             </div>
           </AnimatedSection>
 
-          <AnimatedSection direction="right" className="h-[400px] md:h-[500px]">
-            <Canvas camera={{ position: [0, 0, 5], fov: 50 }}>
+          <AnimatedSection direction="right" className="h-[72vh] min-h-[520px] md:min-h-[680px]">
+            <Canvas camera={{ position: [0, 0, 6], fov: 42 }}>
               <Scene />
             </Canvas>
           </AnimatedSection>

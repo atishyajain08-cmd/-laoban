@@ -9,7 +9,9 @@ import { formatPrice } from "@/lib/utils";
 export default function AdminProductsPage() {
   const [search, setSearch] = useState("");
   const filtered = products.filter((p) =>
-    p.name.toLowerCase().includes(search.toLowerCase()) || p.category.toLowerCase().includes(search.toLowerCase())
+    p.name.toLowerCase().includes(search.toLowerCase())
+    || p.category.toLowerCase().includes(search.toLowerCase())
+    || p.productCode.toLowerCase().includes(search.toLowerCase())
   );
 
   return (
@@ -35,7 +37,7 @@ export default function AdminProductsPage() {
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-gray-100 bg-gray-50">
-              {["Image", "Name", "Category", "Price", "Stock", "Rating", "Actions"].map((h) => (
+              {["Image", "Code", "Name", "Category", "Price", "Stock", "Rating", "Actions"].map((h) => (
                 <th key={h} className="text-left p-4 text-xs font-medium text-gray-500 uppercase tracking-wider">{h}</th>
               ))}
             </tr>
@@ -48,6 +50,7 @@ export default function AdminProductsPage() {
                     <Image src={p.images[0]} alt={p.name} fill className="object-cover" />
                   </div>
                 </td>
+                <td className="p-4 font-mono text-xs text-gold">{p.productCode}</td>
                 <td className="p-4">
                   <div className="font-medium">{p.name}</div>
                   {p.badge && <span className="text-[10px] text-gold uppercase">{p.badge}</span>}

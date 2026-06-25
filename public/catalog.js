@@ -68,6 +68,7 @@
   function normalizedItem(item) {
     return {
       id: String(item.id),
+      product_code: item.product_code || productCodeFromDescription(item.description),
       title: item.title || "Laoban Product",
       description: cleanDescription(item.description),
       price: Number(item.price || 0),
@@ -128,6 +129,11 @@
     return escapeHtml(encodeURIComponent(JSON.stringify(normalizedItem(item))));
   }
 
+  function productCodeFromDescription(description) {
+    const match = String(description || "").match(/\[laoban_code:([A-Za-z0-9_-]+)\]/);
+    return match ? match[1] : "";
+  }
+
   async function loadFallback() {
     const response = await fetch("data/catalog.json");
     const starter = await response.json();
@@ -158,6 +164,7 @@
         <div class="product-card__body">
           <span>${escapeHtml(item.label || "Laoban")}</span>
           <h3>${escapeHtml(item.title)}</h3>
+          <small class="product-code">Code: ${escapeHtml(item.product_code || productCodeFromDescription(item.description) || "LBN")}</small>
           <p>${formatPrice(item.price)}</p>
           <div class="product-card__actions">
             <button class="button button--dark" type="button" data-cart-item="${itemData(item)}"><i data-lucide="shopping-bag"></i> Add to Cart</button>
@@ -199,6 +206,8 @@
     root.querySelector("[data-product-image]").src = item.image_url || "assets/white-tshirt.svg";
     root.querySelector("[data-product-image]").alt = item.title;
     root.querySelector("[data-product-title]").textContent = item.title;
+    const codeNode = root.querySelector("[data-product-code]");
+    if (codeNode) codeNode.textContent = item.product_code || productCodeFromDescription(item.description) || "";
     root.querySelector("[data-product-price]").textContent = formatPrice(item.price);
     root.querySelector("[data-product-description]").textContent = cleanDescription(item.description);
     const inventory = item.inventory || inventoryFromDescription(item.description);

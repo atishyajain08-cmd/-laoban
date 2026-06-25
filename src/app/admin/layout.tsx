@@ -31,7 +31,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       {/* Desktop Sidebar */}
       <aside className="hidden lg:flex flex-col w-64 bg-charcoal text-white fixed inset-y-0 left-0 z-30">
         <div className="p-6 border-b border-white/10">
-          <Link href="/admin" className="font-display text-xl tracking-[0.15em]">LAOBAN</Link>
+          <Link href="/admin" className="flex items-center gap-3 font-display text-xl tracking-[0.15em]">
+            <img src="/-laoban/assets/brand/laoban-lb-mark.png" alt="Laoban" className="h-9 w-9 rounded-full object-cover" />
+            LAOBAN
+          </Link>
           <p className="text-white/40 text-[10px] tracking-[0.2em] uppercase mt-1">Admin Panel</p>
         </div>
         <nav className="flex-1 overflow-y-auto py-4">
@@ -61,7 +64,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           <div className="fixed inset-0 bg-black/50 z-40 lg:hidden" onClick={() => setSidebarOpen(false)} />
           <aside className="fixed inset-y-0 left-0 w-64 bg-charcoal text-white z-50 lg:hidden">
             <div className="flex items-center justify-between p-6 border-b border-white/10">
-              <span className="font-display text-xl tracking-[0.15em]">LAOBAN</span>
+              <span className="flex items-center gap-3 font-display text-xl tracking-[0.15em]">
+                <img src="/-laoban/assets/brand/laoban-lb-mark.png" alt="Laoban" className="h-9 w-9 rounded-full object-cover" />
+                LAOBAN
+              </span>
               <button onClick={() => setSidebarOpen(false)}><X size={20} /></button>
             </div>
             <nav className="overflow-y-auto py-4">

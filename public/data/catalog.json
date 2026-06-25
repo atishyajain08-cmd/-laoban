@@ -1,0 +1,38 @@
+[
+  {
+    "id": "fallback-wt-001",
+    "product_code": "LBN-WT-001",
+    "title": "Laoban Classic White Crew Tee",
+    "description": "Plain basic white men’s crew-neck T-shirt in soft breathable cotton. Clean fit, everyday comfort, and a premium minimal look for Indian weather. [laoban_stock:S=10,M=15,L=15,XL=10]",
+    "price": 999,
+    "section": "new-arrivals",
+    "label": "Casual",
+    "image_url": "assets/products/basic-white-tee.svg",
+    "is_active": true,
+    "sort_order": 1
+  },
+  {
+    "id": "fallback-wt-002",
+    "product_code": "LBN-WT-002",
+    "title": "Laoban Regular Fit White Tee",
+    "description": "A simple regular-fit white T-shirt with a smooth hand-feel and reinforced neckline. Made as a dependable daily essential. [laoban_stock:S=8,M=14,L=14,XL=8]",
+    "price": 1099,
+    "section": "new-arrivals",
+    "label": "Casual",
+    "image_url": "assets/products/basic-white-tee.svg",
+    "is_active": true,
+    "sort_order": 2
+  },
+  {
+    "id": "fallback-wt-003",
+    "product_code": "LBN-WT-003",
+    "title": "Laoban Oversized White Tee",
+    "description": "Plain white oversized T-shirt with dropped shoulders and a relaxed streetwear silhouette. Minimal, clean, and easy to style. [laoban_stock:S=6,M=12,L=12,XL=6]",
+    "price": 1199,
+    "section": "product",
+    "label": "Product",
+    "image_url": "assets/products/basic-white-tee.svg",
+    "is_active": true,
+    "sort_order": 3
+  }
+]

@@ -1,0 +1,11 @@
+<svg width="1200" height="1500" viewBox="0 0 1200 1500" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="1500" fill="#F4F0E8"/>
+  <rect x="80" y="90" width="1040" height="1320" rx="72" fill="#E7DDCB"/>
+  <path d="M365 258C418 300 494 324 600 324C706 324 782 300 835 258L1020 382L893 588L806 542V1205C806 1240 778 1268 743 1268H457C422 1268 394 1240 394 1205V542L307 588L180 382L365 258Z" fill="#FBFAF6"/>
+  <path d="M365 258L423 225C450 282 511 315 600 315C689 315 750 282 777 225L835 258C782 300 706 324 600 324C494 324 418 300 365 258Z" fill="#EAE6DD"/>
+  <path d="M456 357C495 390 543 407 600 407C657 407 705 390 744 357" stroke="#D8D1C5" stroke-width="22" stroke-linecap="round"/>
+  <path d="M410 541V1204C410 1230 431 1251 457 1251H743C769 1251 790 1230 790 1204V541" stroke="#ECE7DE" stroke-width="12"/>
+  <path d="M465 505C505 538 550 554 600 554C650 554 695 538 735 505" stroke="#F0ECE5" stroke-width="10" stroke-linecap="round"/>
+  <path d="M435 900H765" stroke="#F2EFE9" stroke-width="10" stroke-linecap="round"/>
+  <text x="600" y="1380" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="38" letter-spacing="12" fill="#9D8251">LAOBAN</text>
+</svg>

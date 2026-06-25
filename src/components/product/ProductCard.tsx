@@ -117,6 +117,9 @@ export default function ProductCard({ product, index = 0 }: Props) {
           <p className="text-[11px] tracking-[0.15em] uppercase text-warm-gray">
             {product.category}
           </p>
+          <p className="text-[10px] tracking-[0.16em] uppercase text-gold/80">
+            {product.productCode}
+          </p>
           {detailHref ? (
             <Link href={detailHref}>
               <h3 className="text-sm font-medium text-charcoal group-hover:text-gold transition-colors line-clamp-1">
@@ -168,6 +171,9 @@ export default function ProductCard({ product, index = 0 }: Props) {
           <div className="flex flex-col justify-center">
             <p className="text-xs tracking-[0.15em] uppercase text-gold mb-2">
               {product.category}
+            </p>
+            <p className="text-[10px] tracking-[0.18em] uppercase text-warm-gray mb-2">
+              Code: {product.productCode}
             </p>
             <h2 className="font-display text-2xl text-charcoal mb-2">
               {product.name}

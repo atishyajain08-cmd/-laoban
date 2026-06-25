@@ -82,6 +82,11 @@
     return clean ? `${clean}\n\n${stock}` : stock;
   }
 
+  function productCodeFromDescription(description) {
+    const match = String(description || "").match(/\[laoban_code:([A-Za-z0-9_-]+)\]/);
+    return match ? match[1] : "";
+  }
+
   function showDashboard() {
     authSection.hidden = true;
     dashboard.hidden = false;
@@ -119,6 +124,7 @@
 
         const { data: publicData } = client.storage.from("catalog").getPublicUrl(path);
         records.push({
+          product_code: String(values.product_code || "").trim().toUpperCase(),
           title: files.length > 1 ? `${values.title} ${index + 1}` : values.title,
           description: descriptionWithInventory(values.description, values),
           price: Number(values.price || 0),
@@ -154,13 +160,14 @@
       const stockText = inventory
         ? `S ${inventory.S} · M ${inventory.M} · L ${inventory.L} · XL ${inventory.XL}`
         : "Size stock not set";
+      const code = item.product_code || productCodeFromDescription(item.description) || "No code";
       return `
       <article class="admin-item">
         <img src="${escapeHtml(item.image_url || "assets/white-tshirt.svg")}" alt="${escapeHtml(item.title)}">
-        <div><strong>${escapeHtml(item.title)}</strong><span>${escapeHtml(item.section.replace("-", " "))}${item.section === "new-arrivals" ? ` · ${escapeHtml(item.label)}` : ""}</span><small>${stockText}</small></div>
+        <div><strong>${escapeHtml(item.title)}</strong><span>${escapeHtml(code)} · ${escapeHtml(item.section.replace("-", " "))}${item.section === "new-arrivals" ? ` · ${escapeHtml(item.label)}` : ""}</span><small>${stockText}</small></div>
         <button class="icon-button" type="button" data-delete-id="${escapeHtml(item.id)}" data-storage-path="${escapeHtml(item.storage_path)}" aria-label="Remove ${escapeHtml(item.title)}"><i data-lucide="trash-2"></i></button>
       </article>`;
-    }).join("") || "<p>No uploaded collections yet.</p>";
+    }).join("") || "<p>No uploaded products yet.</p>";
     window.lucide?.createIcons();
   }
 
@@ -266,7 +273,11 @@
     const values = Object.fromEntries(formData);
     const submitButton = addForm.querySelector("button[type='submit']");
     submitButton.disabled = true;
-    message(addMessage, "Uploading photos...");
+    if (!String(values.product_code || "").trim()) {
+      submitButton.disabled = false;
+      return message(addMessage, "Product code is required.", "error");
+    }
+    message(addMessage, "Uploading product...");
     let records = [];
     try {
       records = await uploadFiles(files, values);
@@ -275,7 +286,7 @@
       localStorage.setItem("laoban_catalog_updated_at", String(Date.now()));
       addForm.reset();
       updateArrivalCategoryField();
-      message(addMessage, `${records.length} photo${records.length === 1 ? "" : "s"} published successfully.`, "success");
+      message(addMessage, `${records.length} product photo${records.length === 1 ? "" : "s"} published successfully.`, "success");
     } catch (error) {
       const uploadedPaths = records.map((record) => record.storage_path).filter(Boolean);
       if (uploadedPaths.length) await client.storage.from("catalog").remove(uploadedPaths);
@@ -289,7 +300,7 @@
     const button = event.target.closest("[data-delete-id]");
     if (!button || !client) return;
     button.disabled = true;
-    message(removeMessage, "Removing collection...");
+    message(removeMessage, "Removing product...");
     const { error } = await client.from("catalog_items").delete().eq("id", button.dataset.deleteId);
     if (error) {
       button.disabled = false;
@@ -299,7 +310,7 @@
       await client.storage.from("catalog").remove([button.dataset.storagePath]);
     }
     localStorage.setItem("laoban_catalog_updated_at", String(Date.now()));
-    message(removeMessage, "Collection removed.", "success");
+    message(removeMessage, "Product removed.", "success");
     loadAdminItems();
   });
 

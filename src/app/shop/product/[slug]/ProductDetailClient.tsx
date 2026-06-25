@@ -108,6 +108,9 @@ export default function ProductDetailPage() {
           {/* Info */}
           <div className="flex flex-col">
             <p className="text-xs tracking-[0.2em] uppercase text-gold mb-2">{product.category}</p>
+            <p className="mb-2 font-mono text-xs uppercase tracking-[0.18em] text-warm-gray">
+              Product Code: {product.productCode}
+            </p>
             <h1 className="font-display text-3xl md:text-4xl text-charcoal mb-4">{product.name}</h1>
 
             {/* Rating */}

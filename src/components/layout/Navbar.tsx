@@ -69,8 +69,13 @@ export default function Navbar() {
             </button>
 
             {/* Logo */}
-            <Link href="/" className="flex-shrink-0">
-              <h1 className="font-display text-2xl md:text-3xl tracking-[0.15em] text-charcoal">
+            <Link href="/" className="flex flex-shrink-0 items-center gap-3" aria-label="Laoban home">
+              <img
+                src="/-laoban/assets/brand/laoban-lb-mark.png"
+                alt="Laoban LB logo"
+                className="h-10 w-10 rounded-full object-cover shadow-[0_8px_24px_rgba(200,169,110,0.22)] md:h-12 md:w-12"
+              />
+              <h1 className="hidden font-display text-2xl tracking-[0.15em] text-charcoal sm:block md:text-3xl">
                 LAOBAN
               </h1>
             </Link>
@@ -207,7 +212,10 @@ export default function Navbar() {
               className="fixed left-0 top-0 bottom-0 w-80 bg-white z-50 flex flex-col"
             >
               <div className="flex items-center justify-between p-6 border-b border-ivory-dark">
-                <span className="font-display text-xl tracking-[0.15em]">LAOBAN</span>
+                <span className="flex items-center gap-3 font-display text-xl tracking-[0.15em]">
+                  <img src="/-laoban/assets/brand/laoban-lb-mark.png" alt="Laoban" className="h-9 w-9 rounded-full object-cover" />
+                  LAOBAN
+                </span>
                 <button onClick={() => setMobileOpen(false)}>
                   <X size={24} />
                 </button>

@@ -26,9 +26,14 @@ export default function AddProductPage() {
           <div className="bg-white border border-gray-200 rounded-lg p-6 space-y-4">
             <h2 className="font-semibold text-charcoal">Basic Information</h2>
             <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1.5">Product Code</label>
+              <input type="text" className="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-gold"
+                placeholder="e.g., LBN-WT-007" />
+            </div>
+            <div>
               <label className="block text-xs font-medium text-gray-600 mb-1.5">Product Name</label>
               <input type="text" className="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-gold"
-                placeholder="e.g., Silk Noir Wrap Dress" />
+                placeholder="e.g., Laoban Plain White Tee" />
             </div>
             <div>
               <label className="block text-xs font-medium text-gray-600 mb-1.5">Description</label>

@@ -86,3 +86,11 @@ body {
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
+
+.loader-script {
+  font-family: "Playfair Display", Georgia, serif;
+  font-size: clamp(3rem, 8vw, 7rem);
+  font-style: italic;
+  line-height: 0.9;
+  text-shadow: 0 22px 70px rgba(200, 169, 110, 0.32);
+}

@@ -5,6 +5,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_4YMXFJhyg-Gf37mrOweG7g_ISIRDiOF";
 
 interface CatalogItem {
   id: string | number;
+  product_code?: string;
   title?: string;
   description?: string;
   price?: number | string;
@@ -43,6 +44,7 @@ function itemToProduct(item: CatalogItem): Product {
 
   return {
     id: `live-${item.id}`,
+    productCode: item.product_code || `LBN-LIVE-${item.id}`,
     name: item.title || "Laoban Product",
     slug: "",
     price: Number(item.price || 0),
