@@ -1,4 +1,5 @@
 "use client";
+import { useEffect } from "react";
 import dynamic from "next/dynamic";
 import Hero from "@/components/home/Hero";
 import FeaturedCollections from "@/components/home/FeaturedCollections";
@@ -18,6 +19,20 @@ const ThreeDSection = dynamic(() => import("@/components/home/ThreeDSection"), {
 });
 
 export default function Home() {
+  useEffect(() => {
+    const { hash, search, pathname, origin } = window.location;
+    const recoveryPayload =
+      hash.includes("type=recovery") ||
+      hash.includes("access_token=") ||
+      search.includes("type=recovery") ||
+      search.includes("code=");
+
+    if (!recoveryPayload) return;
+
+    const basePath = pathname.startsWith("/-laoban") ? "/-laoban" : "";
+    window.location.replace(`${origin}${basePath}/reset-password.html${search}${hash}`);
+  }, []);
+
   return (
     <>
       <Hero />

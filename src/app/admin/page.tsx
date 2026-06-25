@@ -10,11 +10,11 @@ const stats = [
 ];
 
 const recentOrders = [
-  { id: "ORD-001", customer: "Priya Sharma", total: "₹7,498", status: "Processing", date: "Today" },
-  { id: "ORD-002", customer: "Ananya Reddy", total: "₹4,999", status: "Shipped", date: "Yesterday" },
-  { id: "ORD-003", customer: "Meera Patel", total: "₹11,998", status: "Delivered", date: "2 days ago" },
-  { id: "ORD-004", customer: "Kavya Nair", total: "₹2,999", status: "Processing", date: "3 days ago" },
-  { id: "ORD-005", customer: "Isha Gupta", total: "₹8,999", status: "Pending", date: "4 days ago" },
+  { id: "ORD-001", customer: "Arjun Mehta", total: "₹7,498", status: "Processing", date: "Today" },
+  { id: "ORD-002", customer: "Rohan Kapoor", total: "₹4,999", status: "Shipped", date: "Yesterday" },
+  { id: "ORD-003", customer: "Kabir Sethi", total: "₹11,998", status: "Delivered", date: "2 days ago" },
+  { id: "ORD-004", customer: "Vivaan Nair", total: "₹2,999", status: "Processing", date: "3 days ago" },
+  { id: "ORD-005", customer: "Ishaan Gupta", total: "₹8,999", status: "Pending", date: "4 days ago" },
 ];
 
 const statusColors: Record<string, string> = {

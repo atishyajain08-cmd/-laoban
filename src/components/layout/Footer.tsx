@@ -4,9 +4,9 @@ import { Camera, Globe, Play, MessageSquare } from "lucide-react";
 
 const footerLinks = {
   Shop: [
-    { label: "Dresses", href: "/shop?category=dresses" },
-    { label: "Tops", href: "/shop?category=tops" },
-    { label: "Bottoms", href: "/shop?category=bottoms" },
+    { label: "Crew Tees", href: "/shop?category=tops" },
+    { label: "V-Necks", href: "/shop?category=tops" },
+    { label: "Oversized", href: "/shop?category=tops" },
     { label: "Outerwear", href: "/shop?category=outerwear" },
     { label: "New Arrivals", href: "/shop?filter=new" },
     { label: "Sale", href: "/shop?filter=sale" },

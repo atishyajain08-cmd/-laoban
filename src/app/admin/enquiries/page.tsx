@@ -2,9 +2,9 @@
 import { Download, Eye, Mail } from "lucide-react";
 
 const enquiries = [
-  { id: "1", name: "Raj Fashion House", email: "raj@fashion.com", phone: "+91 98765 43210", category: "Dresses", quantity: 100, message: "Need formal dresses for corporate event", date: "2024-12-20", status: "New" },
+  { id: "1", name: "Raj Fashion House", email: "raj@fashion.com", phone: "+91 98765 43210", category: "Premium Tees", quantity: 100, message: "Need elevated black tees for a corporate gifting event", date: "2024-12-20", status: "New" },
   { id: "2", name: "Style Boutique", email: "info@style.com", phone: "+91 87654 32109", category: "Outerwear", quantity: 50, message: "Bulk order for winter collection", date: "2024-12-18", status: "Contacted" },
-  { id: "3", name: "Priya Clothing", email: "priya@clothing.com", phone: "+91 76543 21098", category: "Tops", quantity: 200, message: "Looking for wholesale pricing on camisoles and blouses", date: "2024-12-15", status: "Quoted" },
+  { id: "3", name: "Pune Menswear Co.", email: "orders@punemenswear.com", phone: "+91 76543 21098", category: "Polos", quantity: 200, message: "Looking for wholesale pricing on polos and long-sleeve tees", date: "2024-12-15", status: "Quoted" },
   { id: "4", name: "Mumbai Retail Co.", email: "info@mumbairetail.com", phone: "+91 65432 10987", category: "Custom", quantity: 500, message: "Custom uniforms for hotel staff", date: "2024-12-12", status: "Closed" },
 ];
 

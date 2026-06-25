@@ -57,7 +57,7 @@ export default function BlogDetailPage() {
               <p>
                 Whether you&apos;re building a wardrobe from scratch or adding statement pieces to your
                 existing collection, the key is to invest in quality, choose versatile pieces, and always
-                dress for the life you want to live.
+                build for the life you want to live.
               </p>
             </div>
           </div>

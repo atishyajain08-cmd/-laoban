@@ -29,8 +29,8 @@ export default function AboutPage() {
           </h2>
           <p className="text-warm-gray leading-relaxed max-w-2xl mx-auto">
             Born from a passion for empowering men through fashion, Laoban is more than a clothing brand
-            — it&apos;s a movement. We believe that every man deserves to feel extraordinary in what she wears,
-            whether it&apos;s a boardroom blazer or a weekend dress.
+            — it&apos;s a movement. We believe that every man deserves to feel composed in what he wears,
+            whether it&apos;s a boardroom layer or a weekend essential.
           </p>
         </AnimatedSection>
 
@@ -81,7 +81,7 @@ export default function AboutPage() {
               <div className="space-y-4 text-warm-gray text-sm leading-relaxed">
                 <p>
                   At Laoban, our mission is to create premium, accessible fashion that celebrates
-                  individuality and confidence. We design for the man who knows her worth and dresses
+                  individuality and confidence. We design for the man who knows his worth and styles himself
                   to reflect it.
                 </p>
                 <p>

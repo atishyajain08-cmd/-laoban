@@ -178,7 +178,7 @@ export default function Navbar() {
                   <Search size={20} className="absolute left-4 top-1/2 -translate-y-1/2 text-warm-gray" />
                   <input
                     type="text"
-                    placeholder="Search for dresses, tops, outerwear..."
+                    placeholder="Search for tees, polos, outerwear..."
                     className="w-full pl-12 pr-4 py-3 bg-ivory border border-ivory-dark text-charcoal placeholder:text-warm-gray focus:outline-none focus:border-gold text-sm tracking-wide"
                     autoFocus
                   />

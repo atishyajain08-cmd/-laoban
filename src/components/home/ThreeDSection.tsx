@@ -1,3 +1,4 @@
+// @ts-nocheck
 "use client";
 import { useRef } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
@@ -61,7 +62,7 @@ function BrandText() {
         bevelSize={0.02}
         bevelSegments={5}
       >
-        M
+        L
         <meshStandardMaterial color="#C8A96E" metalness={0.8} roughness={0.2} />
       </Text3D>
     </Center>

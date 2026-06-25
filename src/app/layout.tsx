@@ -12,12 +12,12 @@ export const metadata: Metadata = {
     template: "%s | Laoban",
   },
   description:
-    "Discover premium men's fashion at Laoban. Shop dresses, tops, outerwear, and more. Luxury meets everyday elegance for the modern man.",
+    "Discover premium men's fashion at Laoban. Shop tees, polos, outerwear, and refined essentials. Luxury meets everyday confidence for the modern Indian man.",
   keywords: [
     "men's fashion",
     "luxury clothing",
-    "premium dresses",
-    "designer wear",
+    "premium menswear",
+    "Indian menswear",
     "Laoban",
   ],
   // TODO: Add Google Analytics, Search Console verification, OG images
