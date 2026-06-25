@@ -20,6 +20,7 @@ export default function ProductCard({ product, index = 0 }: Props) {
   const { addItem: addToCart } = useCart();
   const [quickView, setQuickView] = useState(false);
   const wishlisted = isInWishlist(product.id);
+  const detailHref = product.isLiveCatalog ? "" : `/shop/product/${product.slug}`;
 
   return (
     <>
@@ -32,15 +33,27 @@ export default function ProductCard({ product, index = 0 }: Props) {
       >
         {/* Image */}
         <div className="relative aspect-[3/4] overflow-hidden bg-ivory mb-4">
-          <Link href={`/shop/product/${product.slug}`}>
-            <Image
-              src={product.images[0]}
-              alt={product.name}
-              fill
-              className="object-cover transition-transform duration-700 group-hover:scale-110"
-              sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-            />
-          </Link>
+          {detailHref ? (
+            <Link href={detailHref}>
+              <Image
+                src={product.images[0]}
+                alt={product.name}
+                fill
+                className="object-cover transition-transform duration-700 group-hover:scale-110"
+                sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+              />
+            </Link>
+          ) : (
+            <button type="button" onClick={() => setQuickView(true)} className="block w-full h-full">
+              <Image
+                src={product.images[0]}
+                alt={product.name}
+                fill
+                className="object-cover transition-transform duration-700 group-hover:scale-110"
+                sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+              />
+            </button>
+          )}
 
           {/* Badge */}
           {product.badge && (
@@ -104,11 +117,19 @@ export default function ProductCard({ product, index = 0 }: Props) {
           <p className="text-[11px] tracking-[0.15em] uppercase text-warm-gray">
             {product.category}
           </p>
-          <Link href={`/shop/product/${product.slug}`}>
-            <h3 className="text-sm font-medium text-charcoal group-hover:text-gold transition-colors line-clamp-1">
-              {product.name}
-            </h3>
-          </Link>
+          {detailHref ? (
+            <Link href={detailHref}>
+              <h3 className="text-sm font-medium text-charcoal group-hover:text-gold transition-colors line-clamp-1">
+                {product.name}
+              </h3>
+            </Link>
+          ) : (
+            <button type="button" onClick={() => setQuickView(true)} className="text-left">
+              <h3 className="text-sm font-medium text-charcoal group-hover:text-gold transition-colors line-clamp-1">
+                {product.name}
+              </h3>
+            </button>
+          )}
           <div className="flex items-center gap-2">
             <span className="text-sm font-semibold text-charcoal">
               {formatPrice(product.price)}
@@ -188,13 +209,26 @@ export default function ProductCard({ product, index = 0 }: Props) {
                 ))}
               </div>
             </div>
-            <Link
-              href={`/shop/product/${product.slug}`}
-              className="block text-center bg-charcoal text-white py-3 text-sm tracking-[0.15em] uppercase hover:bg-gold transition-colors"
-              onClick={() => setQuickView(false)}
-            >
-              View Full Details
-            </Link>
+            {detailHref ? (
+              <Link
+                href={detailHref}
+                className="block text-center bg-charcoal text-white py-3 text-sm tracking-[0.15em] uppercase hover:bg-gold transition-colors"
+                onClick={() => setQuickView(false)}
+              >
+                View Full Details
+              </Link>
+            ) : (
+              <button
+                type="button"
+                className="bg-charcoal text-white py-3 text-sm tracking-[0.15em] uppercase hover:bg-gold transition-colors"
+                onClick={() => {
+                  addToCart(product, product.sizes[1] || product.sizes[0], product.colors[0].name);
+                  setQuickView(false);
+                }}
+              >
+                Add to Cart
+              </button>
+            )}
           </div>
         </div>
       </Modal>

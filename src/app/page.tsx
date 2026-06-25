@@ -8,6 +8,7 @@ import BestSellers from "@/components/home/BestSellers";
 import Testimonials from "@/components/home/Testimonials";
 import InstagramGrid from "@/components/home/InstagramGrid";
 import LeadCapture from "@/components/home/LeadCapture";
+import LiveCatalog from "@/components/home/LiveCatalog";
 
 const ThreeDSection = dynamic(() => import("@/components/home/ThreeDSection"), {
   ssr: false,
@@ -38,6 +39,7 @@ export default function Home() {
       <Hero />
       <FeaturedCollections />
       <NewArrivals />
+      <LiveCatalog compact />
       <ThreeDSection />
       <BestSellers />
       <LeadCapture />

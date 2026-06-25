@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { SlidersHorizontal, X, ChevronDown } from "lucide-react";
 import AnimatedSection from "@/components/ui/AnimatedSection";
 import ProductCard from "@/components/product/ProductCard";
+import LiveCatalog from "@/components/home/LiveCatalog";
 import { products } from "@/data/products";
 import { categories } from "@/data/categories";
 
@@ -94,6 +95,8 @@ function ShopContent() {
           </AnimatedSection>
         </div>
       </div>
+
+      <LiveCatalog />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
         {/* Toolbar */}

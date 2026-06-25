@@ -15,6 +15,7 @@ export interface Product {
   badge?: "new" | "bestseller" | "sale";
   inStock: boolean;
   deliveryDays: number;
+  isLiveCatalog?: boolean;
 }
 
 // Men's campaign shots (placeholders — swap for real per-product photos later).
