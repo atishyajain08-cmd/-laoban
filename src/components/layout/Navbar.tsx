@@ -35,12 +35,11 @@ export default function Navbar() {
     return () => { document.body.style.overflow = ""; };
   }, [mobileOpen]);
 
-  const navLinks = [
-    { label: "Home", href: "/" },
-    { label: "Shop", href: "/shop", hasDropdown: true },
-    { label: "About", href: "/about" },
-    { label: "Blog", href: "/blog" },
-    { label: "Contact", href: "/contact" },
+  const navLinks: { label: string; href: string; hasDropdown?: boolean }[] = [
+    { label: "New Arrivals", href: "/shop?filter=new" },
+    { label: "Collection", href: "/shop" },
+    { label: "Lookbook", href: "/blog" },
+    { label: "Products", href: "/shop" },
   ];
 
   return (
