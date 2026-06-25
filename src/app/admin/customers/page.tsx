@@ -3,11 +3,11 @@ import { useState } from "react";
 import { Download, Search, Eye, Edit2 } from "lucide-react";
 
 const customers = [
-  { id: "1", name: "Priya Sharma", email: "priya@email.com", phone: "+91 98765 43210", orders: 5, spent: 24990, joined: "2024-10-15" },
-  { id: "2", name: "Ananya Reddy", email: "ananya@email.com", phone: "+91 87654 32109", orders: 3, spent: 15497, joined: "2024-11-01" },
-  { id: "3", name: "Meera Patel", email: "meera@email.com", phone: "+91 76543 21098", orders: 8, spent: 42990, joined: "2024-09-20" },
-  { id: "4", name: "Kavya Nair", email: "kavya@email.com", phone: "+91 65432 10987", orders: 2, spent: 8998, joined: "2024-11-15" },
-  { id: "5", name: "Isha Gupta", email: "isha@email.com", phone: "+91 54321 09876", orders: 6, spent: 31994, joined: "2024-10-01" },
+  { id: "1", name: "Arjun Mehta", email: "arjun@email.com", phone: "+91 98765 43210", orders: 5, spent: 24990, joined: "2024-10-15" },
+  { id: "2", name: "Rohan Kapoor", email: "rohan@email.com", phone: "+91 87654 32109", orders: 3, spent: 15497, joined: "2024-11-01" },
+  { id: "3", name: "Kabir Malhotra", email: "kabir@email.com", phone: "+91 76543 21098", orders: 8, spent: 42990, joined: "2024-09-20" },
+  { id: "4", name: "Vivaan Nair", email: "vivaan@email.com", phone: "+91 65432 10987", orders: 2, spent: 8998, joined: "2024-11-15" },
+  { id: "5", name: "Aditya Gupta", email: "aditya@email.com", phone: "+91 54321 09876", orders: 6, spent: 31994, joined: "2024-10-01" },
 ];
 
 export default function AdminCustomersPage() {

@@ -9,13 +9,13 @@ export default function Hero() {
       {/* Background Image */}
       <div className="absolute inset-0">
         <Image
-          src="https://images.unsplash.com/photo-1469334031218-e382a71b716b?w=1920"
-          alt="Laoban Fashion"
+          src="/assets/campaign/laoban-hero-men.png"
+          alt="Laoban premium menswear campaign"
           fill
-          className="object-cover"
+          className="object-cover object-center"
           priority
         />
-        <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/30 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-r from-black/75 via-black/45 to-black/10" />
       </div>
 
       {/* Content */}

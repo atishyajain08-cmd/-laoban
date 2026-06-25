@@ -3,11 +3,11 @@ import { useState } from "react";
 import { Download, Eye, FileText, Search } from "lucide-react";
 
 const orders = [
-  { id: "ORD-001", customer: "Priya Sharma", email: "priya@email.com", total: 7498, items: 2, status: "Processing", date: "2024-12-20", payment: "Prepaid" },
-  { id: "ORD-002", customer: "Ananya Reddy", email: "ananya@email.com", total: 4999, items: 1, status: "Shipped", date: "2024-12-19", payment: "COD" },
-  { id: "ORD-003", customer: "Meera Patel", email: "meera@email.com", total: 11998, items: 3, status: "Delivered", date: "2024-12-18", payment: "Prepaid" },
-  { id: "ORD-004", customer: "Kavya Nair", email: "kavya@email.com", total: 2999, items: 1, status: "Cancelled", date: "2024-12-17", payment: "Prepaid" },
-  { id: "ORD-005", customer: "Isha Gupta", email: "isha@email.com", total: 8999, items: 2, status: "Processing", date: "2024-12-16", payment: "COD" },
+  { id: "ORD-001", customer: "Arjun Mehta", email: "arjun@email.com", total: 7498, items: 2, status: "Processing", date: "2024-12-20", payment: "Prepaid" },
+  { id: "ORD-002", customer: "Rohan Kapoor", email: "rohan@email.com", total: 4999, items: 1, status: "Shipped", date: "2024-12-19", payment: "COD" },
+  { id: "ORD-003", customer: "Kabir Malhotra", email: "kabir@email.com", total: 11998, items: 3, status: "Delivered", date: "2024-12-18", payment: "Prepaid" },
+  { id: "ORD-004", customer: "Vivaan Nair", email: "vivaan@email.com", total: 2999, items: 1, status: "Cancelled", date: "2024-12-17", payment: "Prepaid" },
+  { id: "ORD-005", customer: "Aditya Gupta", email: "aditya@email.com", total: 8999, items: 2, status: "Processing", date: "2024-12-16", payment: "COD" },
 ];
 
 const statusColors: Record<string, string> = {

@@ -29,9 +29,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await new Promise((r) => setTimeout(r, 800));
     setUser({
       id: "1",
-      name: "Priya Sharma",
+      name: "Arjun Mehta",
       email,
-      avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100",
+      avatar: "/assets/campaign/laoban-social-3.png",
     });
     return true;
   }, []);

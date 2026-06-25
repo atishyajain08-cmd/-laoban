@@ -8,10 +8,10 @@ export default function AboutPage() {
       {/* Hero */}
       <div className="relative h-[50vh] md:h-[60vh] overflow-hidden">
         <Image
-          src="https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?w=1920"
-          alt="About Laoban"
+          src="/assets/campaign/laoban-menswear-strip.png"
+          alt="Laoban menswear wardrobe"
           fill
-          className="object-cover"
+          className="object-cover object-center"
         />
         <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
           <AnimatedSection className="text-center">
@@ -67,8 +67,8 @@ export default function AboutPage() {
           <div className="grid md:grid-cols-2 gap-12 items-center">
             <div className="relative aspect-[4/5] overflow-hidden">
               <Image
-                src="https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=800"
-                alt="Laoban Mission"
+                src="/assets/campaign/laoban-look-3.png"
+                alt="Laoban tailored menswear"
                 fill
                 className="object-cover"
               />

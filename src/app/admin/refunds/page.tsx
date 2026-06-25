@@ -2,10 +2,10 @@
 import { Eye } from "lucide-react";
 
 const refunds = [
-  { id: "REF-001", orderId: "ORD-001", customer: "Priya Sharma", amount: 4999, reason: "Size not fitting", status: "Pending", date: "2024-12-20" },
-  { id: "REF-002", orderId: "ORD-003", customer: "Meera Patel", amount: 2999, reason: "Wrong color received", status: "Approved", date: "2024-12-18" },
-  { id: "REF-003", orderId: "ORD-004", customer: "Kavya Nair", amount: 2999, reason: "Changed mind", status: "Rejected", date: "2024-12-17" },
-  { id: "REF-004", orderId: "ORD-005", customer: "Isha Gupta", amount: 5499, reason: "Damaged product", status: "Refunded", date: "2024-12-15" },
+  { id: "REF-001", orderId: "ORD-001", customer: "Arjun Mehta", amount: 4999, reason: "Size not fitting", status: "Pending", date: "2024-12-20" },
+  { id: "REF-002", orderId: "ORD-003", customer: "Kabir Malhotra", amount: 2999, reason: "Wrong color received", status: "Approved", date: "2024-12-18" },
+  { id: "REF-003", orderId: "ORD-004", customer: "Vivaan Nair", amount: 2999, reason: "Changed mind", status: "Rejected", date: "2024-12-17" },
+  { id: "REF-004", orderId: "ORD-005", customer: "Aditya Gupta", amount: 5499, reason: "Damaged product", status: "Refunded", date: "2024-12-15" },
 ];
 
 const statusColors: Record<string, string> = {

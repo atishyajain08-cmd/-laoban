@@ -4,9 +4,9 @@ import Image from "next/image";
 import { Plus, Edit2, Trash2, GripVertical } from "lucide-react";
 
 const dummyBanners = [
-  { id: "1", title: "New Collection 2025", image: "https://images.unsplash.com/photo-1469334031218-e382a71b716b?w=800", link: "/shop?filter=new", active: true, position: "hero" },
-  { id: "2", title: "Summer Sale - Up to 40% Off", image: "https://images.unsplash.com/photo-1483985988355-763728e1935b?w=800", link: "/shop?filter=sale", active: true, position: "secondary" },
-  { id: "3", title: "Premium Outerwear", image: "https://images.unsplash.com/photo-1539533018447-63fcce2678e3?w=800", link: "/shop?category=outerwear", active: false, position: "secondary" },
+  { id: "1", title: "New Collection 2025", image: "/assets/campaign/laoban-hero-men.png", link: "/shop?filter=new", active: true, position: "hero" },
+  { id: "2", title: "Occasionwear Edit", image: "/assets/campaign/laoban-look-4.png", link: "/shop?filter=sale", active: true, position: "secondary" },
+  { id: "3", title: "Premium Tailoring", image: "/assets/campaign/laoban-look-6.png", link: "/shop?category=outerwear", active: false, position: "secondary" },
 ];
 
 export default function AdminBannersPage() {
