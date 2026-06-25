@@ -9,7 +9,7 @@ export default function Hero() {
       {/* Background Image */}
       <div className="absolute inset-0">
         <Image
-          src="/assets/campaign/laoban-hero-men.png"
+          src="/-laoban/assets/campaign/laoban-hero-men.png"
           alt="Laoban premium menswear campaign"
           fill
           className="object-cover object-center"

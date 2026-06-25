@@ -8,7 +8,7 @@ export default function AboutPage() {
       {/* Hero */}
       <div className="relative h-[50vh] md:h-[60vh] overflow-hidden">
         <Image
-          src="/assets/campaign/laoban-menswear-strip.png"
+          src="/-laoban/assets/campaign/laoban-menswear-strip.png"
           alt="Laoban menswear wardrobe"
           fill
           className="object-cover object-center"
@@ -67,7 +67,7 @@ export default function AboutPage() {
           <div className="grid md:grid-cols-2 gap-12 items-center">
             <div className="relative aspect-[4/5] overflow-hidden">
               <Image
-                src="/assets/campaign/laoban-look-3.png"
+                src="/-laoban/assets/campaign/laoban-look-3.png"
                 alt="Laoban tailored menswear"
                 fill
                 className="object-cover"

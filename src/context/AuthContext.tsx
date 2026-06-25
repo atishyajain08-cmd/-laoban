@@ -31,7 +31,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       id: "1",
       name: "Arjun Mehta",
       email,
-      avatar: "/assets/campaign/laoban-social-3.png",
+      avatar: "/-laoban/assets/campaign/laoban-social-3.png",
     });
     return true;
   }, []);

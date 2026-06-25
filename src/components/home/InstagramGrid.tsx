@@ -4,12 +4,12 @@ import { Camera } from "lucide-react";
 import AnimatedSection from "@/components/ui/AnimatedSection";
 
 const images = [
-  "/assets/campaign/laoban-social-1.png",
-  "/assets/campaign/laoban-social-2.png",
-  "/assets/campaign/laoban-social-3.png",
-  "/assets/campaign/laoban-social-4.png",
-  "/assets/campaign/laoban-social-5.png",
-  "/assets/campaign/laoban-social-6.png",
+  "/-laoban/assets/campaign/laoban-social-1.png",
+  "/-laoban/assets/campaign/laoban-social-2.png",
+  "/-laoban/assets/campaign/laoban-social-3.png",
+  "/-laoban/assets/campaign/laoban-social-4.png",
+  "/-laoban/assets/campaign/laoban-social-5.png",
+  "/-laoban/assets/campaign/laoban-social-6.png",
 ];
 
 export default function InstagramGrid() {
