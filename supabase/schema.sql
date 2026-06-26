@@ -6,6 +6,11 @@ create table if not exists public.catalog_items (
   title text not null,
   description text not null default '',
   price integer not null default 0 check (price >= 0),
+  product_type text not null default 'T-Shirt',
+  fit text not null default 'Regular',
+  material text not null default 'Cotton',
+  colors jsonb not null default '[{"name":"Pure White","hex":"#FFFFFF"}]'::jsonb,
+  badge text,
   section text not null default 'product',
   label text not null default 'Product',
   image_url text not null,
@@ -19,7 +24,12 @@ create index if not exists catalog_items_live_sort_idx
   on public.catalog_items (is_active, sort_order, created_at desc);
 
 alter table public.catalog_items
-  add column if not exists product_code text not null default '';
+  add column if not exists product_code text not null default '',
+  add column if not exists product_type text not null default 'T-Shirt',
+  add column if not exists fit text not null default 'Regular',
+  add column if not exists material text not null default 'Cotton',
+  add column if not exists colors jsonb not null default '[{"name":"Pure White","hex":"#FFFFFF"}]'::jsonb,
+  add column if not exists badge text;
 
 create unique index if not exists catalog_items_product_code_idx
   on public.catalog_items (product_code)

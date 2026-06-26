@@ -9,6 +9,11 @@ interface CatalogItem {
   title?: string;
   description?: string;
   price?: number | string;
+  product_type?: string;
+  fit?: string;
+  material?: string;
+  colors?: { name: string; hex: string }[];
+  badge?: "new" | "bestseller" | "sale";
   section?: string;
   label?: string;
   image_url?: string;
@@ -49,17 +54,16 @@ function itemToProduct(item: CatalogItem): Product {
     slug: "",
     price: Number(item.price || 0),
     description: cleanDescription(item.description) || "Premium Laoban menswear piece from the live catalog.",
-    category: item.section || "live catalog",
-    subcategory: item.label || "Laoban",
+    category: item.product_type?.toLowerCase() || item.section || "live catalog",
+    subcategory: item.fit || item.label || "Laoban",
     images: [usableImage(item.image_url)],
     sizes: sizes.length ? sizes : ["S", "M", "L", "XL"],
-    colors: [
-      { name: "Jet Black", hex: "#0A0A0A" },
-      { name: "Laoban Gold", hex: "#C8A96E" },
-    ],
+    colors: Array.isArray(item.colors) && item.colors.length
+      ? item.colors
+      : [{ name: "Pure White", hex: "#FFFFFF" }],
     rating: 4.8,
     reviews: 0,
-    badge: "new",
+    badge: item.badge || "new",
     inStock: !inventory || Object.values(inventory).some((stock) => stock > 0),
     deliveryDays: 3,
     isLiveCatalog: true,

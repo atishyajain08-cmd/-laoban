@@ -8,12 +8,12 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="admin-styles.css?v=white-tee-code-1">
+  <link rel="stylesheet" href="admin-styles.css?v=filters-upload-1">
   <script defer src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
   <script defer src="assets/vendor/supabase.min.js"></script>
   <script defer src="supabase-config.js"></script>
-  <script defer src="catalog.js?v=white-tee-code-1"></script>
-  <script defer src="admin.js?v=white-tee-code-1"></script>
+  <script defer src="catalog.js?v=filters-upload-1"></script>
+  <script defer src="admin.js?v=filters-upload-1"></script>
 </head>
 <body class="admin-page">
   <main class="admin-shell">
@@ -59,6 +59,40 @@
           <label>Product name<input type="text" name="title" required></label>
           <label>Description<textarea name="description" rows="4"></textarea></label>
           <label>Price in rupees<input type="number" name="price" min="0" step="1" value="0"></label>
+          <fieldset class="admin-stock">
+            <legend>Shopping filters</legend>
+            <p class="admin-stock__note">These values power product filtering on the storefront.</p>
+            <label>Product type
+              <select name="product_type" required>
+                <option value="T-Shirt">T-Shirt</option>
+                <option value="Polo">Polo</option>
+                <option value="Shirt">Shirt</option>
+                <option value="Trouser">Trouser</option>
+                <option value="Jacket">Jacket</option>
+                <option value="Kurta">Kurta</option>
+              </select>
+            </label>
+            <label>Fit
+              <select name="fit" required>
+                <option value="Regular">Regular</option>
+                <option value="Slim">Slim</option>
+                <option value="Relaxed">Relaxed</option>
+                <option value="Oversized">Oversized</option>
+                <option value="Longline">Longline</option>
+              </select>
+            </label>
+            <label>Fabric / material<input type="text" name="material" value="Cotton" placeholder="Cotton, Linen, Cotton Blend" required></label>
+            <label>Color name<input type="text" name="color_name" value="Pure White" placeholder="Pure White, Navy, Black" required></label>
+            <label>Color hex<input type="text" name="color_hex" value="#FFFFFF" pattern="#[0-9A-Fa-f]{6}" placeholder="#FFFFFF" required></label>
+            <label>Product tag
+              <select name="badge">
+                <option value="">None</option>
+                <option value="new">New</option>
+                <option value="bestseller">Bestseller</option>
+                <option value="sale">Sale</option>
+              </select>
+            </label>
+          </fieldset>
           <label>
             Where should these photos appear?
             <select name="section" required data-section-select>
@@ -84,6 +118,7 @@
             <label>M pieces<input type="number" name="stock_m" min="0" step="1" value="3" required></label>
             <label>L pieces<input type="number" name="stock_l" min="0" step="1" value="3" required></label>
             <label>XL pieces<input type="number" name="stock_xl" min="0" step="1" value="3" required></label>
+            <label>XXL pieces<input type="number" name="stock_xxl" min="0" step="1" value="2" required></label>
           </fieldset>
           <label>Photos<input type="file" name="photos" accept="image/png,image/jpeg,image/webp" multiple required></label>
           <button class="button button--dark" type="submit"><i data-lucide="upload"></i> Upload product</button>

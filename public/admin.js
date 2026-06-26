@@ -44,7 +44,8 @@
         <label>S pieces<input type="number" name="stock_s" min="0" step="1" value="3" required></label>
         <label>M pieces<input type="number" name="stock_m" min="0" step="1" value="3" required></label>
         <label>L pieces<input type="number" name="stock_l" min="0" step="1" value="3" required></label>
-        <label>XL pieces<input type="number" name="stock_xl" min="0" step="1" value="3" required></label>`;
+        <label>XL pieces<input type="number" name="stock_xl" min="0" step="1" value="3" required></label>
+        <label>XXL pieces<input type="number" name="stock_xxl" min="0" step="1" value="2" required></label>`;
       addForm.querySelector("input[type='file']")?.closest("label").insertAdjacentElement("beforebegin", stock);
     }
   }
@@ -72,13 +73,13 @@
   }
 
   function inventoryFromDescription(description) {
-    const match = String(description || "").match(/\[laoban_stock:S=(\d+),M=(\d+),L=(\d+),XL=(\d+)\]/);
-    return match ? { S: Number(match[1]), M: Number(match[2]), L: Number(match[3]), XL: Number(match[4]) } : null;
+    const match = String(description || "").match(/\[laoban_stock:S=(\d+),M=(\d+),L=(\d+),XL=(\d+)(?:,XXL=(\d+))?\]/);
+    return match ? { S: Number(match[1]), M: Number(match[2]), L: Number(match[3]), XL: Number(match[4]), XXL: Number(match[5] || 0) } : null;
   }
 
   function descriptionWithInventory(description, values) {
-    const clean = String(description || "").replace(/\s*\[laoban_stock:S=\d+,M=\d+,L=\d+,XL=\d+\]\s*/g, "").trim();
-    const stock = `[laoban_stock:S=${Number(values.stock_s)},M=${Number(values.stock_m)},L=${Number(values.stock_l)},XL=${Number(values.stock_xl)}]`;
+    const clean = String(description || "").replace(/\s*\[laoban_stock:S=\d+,M=\d+,L=\d+,XL=\d+(?:,XXL=\d+)?\]\s*/g, "").trim();
+    const stock = `[laoban_stock:S=${Number(values.stock_s)},M=${Number(values.stock_m)},L=${Number(values.stock_l)},XL=${Number(values.stock_xl)},XXL=${Number(values.stock_xxl)}]`;
     return clean ? `${clean}\n\n${stock}` : stock;
   }
 
@@ -128,6 +129,11 @@
           title: files.length > 1 ? `${values.title} ${index + 1}` : values.title,
           description: descriptionWithInventory(values.description, values),
           price: Number(values.price || 0),
+          product_type: values.product_type || "T-Shirt",
+          fit: values.fit || "Regular",
+          material: values.material || "Cotton",
+          colors: [{ name: values.color_name || "Pure White", hex: values.color_hex || "#FFFFFF" }],
+          badge: values.badge || null,
           section: values.section,
           label: values.section === "new-arrivals"
             ? values.arrival_category
@@ -158,13 +164,15 @@
     itemsRoot.innerHTML = (data || []).map((item) => {
       const inventory = inventoryFromDescription(item.description);
       const stockText = inventory
-        ? `S ${inventory.S} · M ${inventory.M} · L ${inventory.L} · XL ${inventory.XL}`
+        ? `S ${inventory.S} · M ${inventory.M} · L ${inventory.L} · XL ${inventory.XL} · XXL ${inventory.XXL}`
         : "Size stock not set";
       const code = item.product_code || productCodeFromDescription(item.description) || "No code";
+      const colorName = Array.isArray(item.colors) && item.colors[0]?.name ? item.colors[0].name : "Color not set";
+      const filtersText = `${item.product_type || "Product"} · ${item.fit || "Fit"} · ${colorName} · ${item.material || "Material"}${item.badge ? ` · ${item.badge}` : ""}`;
       return `
       <article class="admin-item">
         <img src="${escapeHtml(item.image_url || "assets/white-tshirt.svg")}" alt="${escapeHtml(item.title)}">
-        <div><strong>${escapeHtml(item.title)}</strong><span>${escapeHtml(code)} · ${escapeHtml(item.section.replace("-", " "))}${item.section === "new-arrivals" ? ` · ${escapeHtml(item.label)}` : ""}</span><small>${stockText}</small></div>
+        <div><strong>${escapeHtml(item.title)}</strong><span>${escapeHtml(code)} · ${escapeHtml(filtersText)}</span><small>${stockText}</small></div>
         <button class="icon-button" type="button" data-delete-id="${escapeHtml(item.id)}" data-storage-path="${escapeHtml(item.storage_path)}" aria-label="Remove ${escapeHtml(item.title)}"><i data-lucide="trash-2"></i></button>
       </article>`;
     }).join("") || "<p>No uploaded products yet.</p>";

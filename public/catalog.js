@@ -57,12 +57,12 @@
   }
 
   function inventoryFromDescription(description) {
-    const match = String(description || "").match(/\[laoban_stock:S=(\d+),M=(\d+),L=(\d+),XL=(\d+)\]/);
-    return match ? { S: Number(match[1]), M: Number(match[2]), L: Number(match[3]), XL: Number(match[4]) } : null;
+    const match = String(description || "").match(/\[laoban_stock:S=(\d+),M=(\d+),L=(\d+),XL=(\d+)(?:,XXL=(\d+))?\]/);
+    return match ? { S: Number(match[1]), M: Number(match[2]), L: Number(match[3]), XL: Number(match[4]), XXL: Number(match[5] || 0) } : null;
   }
 
   function cleanDescription(description) {
-    return String(description || "").replace(/\s*\[laoban_stock:S=\d+,M=\d+,L=\d+,XL=\d+\]\s*/g, "").trim();
+    return String(description || "").replace(/\s*\[laoban_stock:S=\d+,M=\d+,L=\d+,XL=\d+(?:,XXL=\d+)?\]\s*/g, "").trim();
   }
 
   function normalizedItem(item) {
@@ -72,6 +72,11 @@
       title: item.title || "Laoban Product",
       description: cleanDescription(item.description),
       price: Number(item.price || 0),
+      product_type: item.product_type || "T-Shirt",
+      fit: item.fit || "Regular",
+      material: item.material || "Cotton",
+      colors: Array.isArray(item.colors) ? item.colors : [{ name: "Pure White", hex: "#FFFFFF" }],
+      badge: item.badge || "",
       section: item.section || "product",
       label: item.label || "Laoban",
       image_url: item.image_url || "assets/white-tshirt.svg",
@@ -165,6 +170,7 @@
           <span>${escapeHtml(item.label || "Laoban")}</span>
           <h3>${escapeHtml(item.title)}</h3>
           <small class="product-code">Code: ${escapeHtml(item.product_code || productCodeFromDescription(item.description) || "LBN")}</small>
+          <small class="product-code">${escapeHtml(item.product_type || "T-Shirt")} · ${escapeHtml(item.fit || "Regular")} · ${escapeHtml(item.colors?.[0]?.name || "Pure White")}</small>
           <p>${formatPrice(item.price)}</p>
           <div class="product-card__actions">
             <button class="button button--dark" type="button" data-cart-item="${itemData(item)}"><i data-lucide="shopping-bag"></i> Add to Cart</button>
