@@ -57,8 +57,8 @@ export default function Navbar() {
         animate={{ y: 0 }}
         transition={{ duration: 0.6 }}
       >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6">
-          <div className="flex items-center justify-between h-16 md:h-20">
+        <div className="w-full px-4 sm:px-6 lg:px-10">
+          <div className="grid h-16 grid-cols-[auto_1fr_auto] items-center gap-3 md:h-20 md:grid-cols-[minmax(260px,1fr)_auto_minmax(260px,1fr)] md:gap-8">
             {/* Mobile Menu Toggle */}
             <button
               className="md:hidden p-2 -ml-2"
@@ -69,7 +69,7 @@ export default function Navbar() {
             </button>
 
             {/* Logo */}
-            <Link href="/" className="flex flex-shrink-0 items-center gap-3" aria-label="Laoban home">
+            <Link href="/" className="flex min-w-0 items-center gap-3 justify-self-start" aria-label="Laoban home">
               <img
                 src="/-laoban/assets/brand/laoban-lb-mark.png"
                 alt="Laoban LB logo"
@@ -81,7 +81,7 @@ export default function Navbar() {
             </Link>
 
             {/* Desktop Nav */}
-            <nav className="hidden md:flex items-center gap-8">
+            <nav className="hidden items-center justify-center gap-8 md:flex">
               {navLinks.map((link) => (
                 <div
                   key={link.label}
@@ -133,7 +133,7 @@ export default function Navbar() {
             </nav>
 
             {/* Right Icons */}
-            <div className="flex items-center gap-3 md:gap-4">
+            <div className="flex items-center justify-end gap-2 justify-self-end md:gap-4">
               <button
                 onClick={() => setSearchOpen(!searchOpen)}
                 className="p-2 hover:text-gold transition-colors"
