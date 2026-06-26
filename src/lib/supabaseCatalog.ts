@@ -70,8 +70,9 @@ function itemToProduct(item: CatalogItem): Product {
   };
 }
 
-export async function fetchLiveCatalogProducts(): Promise<Product[]> {
-  const endpoint = `${SUPABASE_URL}/rest/v1/catalog_items?select=*&is_active=eq.true&order=sort_order.asc&order=created_at.desc`;
+export async function fetchLiveCatalogProducts(section?: string): Promise<Product[]> {
+  const sectionFilter = section ? `&section=eq.${encodeURIComponent(section)}` : "";
+  const endpoint = `${SUPABASE_URL}/rest/v1/catalog_items?select=*&is_active=eq.true${sectionFilter}&order=sort_order.asc&order=created_at.desc`;
   const response = await fetch(endpoint, {
     headers: {
       apikey: SUPABASE_ANON_KEY,

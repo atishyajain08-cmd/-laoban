@@ -137,7 +137,7 @@
           section: values.section,
           label: values.section === "new-arrivals"
             ? values.arrival_category
-            : values.section === "product" ? "Product" : "Collection",
+            : values.section === "lookbook" ? "Lookbook" : values.section === "product" ? "Product" : "Collection",
           image_url: publicData.publicUrl,
           storage_path: path,
           is_active: true,

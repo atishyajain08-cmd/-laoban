@@ -48,6 +48,14 @@ export default function Home() {
       <CollectionCube />
       <NewArrivals />
       <LiveCatalog compact />
+      <LiveCatalog
+        compact
+        section="lookbook"
+        eyebrow="Shop the Look"
+        title="Buyable Lookbook"
+        description="Looks uploaded to Laoban Admin under Lookbook appear here as shoppable products."
+        tone="ivory"
+      />
       <ThreeDSection />
       <BestSellers />
       <LeadCapture />

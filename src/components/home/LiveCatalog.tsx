@@ -7,16 +7,30 @@ import { fetchLiveCatalogProducts } from "@/lib/supabaseCatalog";
 
 interface Props {
   compact?: boolean;
+  section?: string;
+  eyebrow?: string;
+  title?: string;
+  description?: string;
+  emptyMessage?: string;
+  tone?: "warm" | "ivory" | "dark";
 }
 
-export default function LiveCatalog({ compact = false }: Props) {
+export default function LiveCatalog({
+  compact = false,
+  section,
+  eyebrow = "Backend Connected",
+  title = "Live from Laoban Studio",
+  description = "Products uploaded in Laoban Admin appear here automatically.",
+  emptyMessage,
+  tone = "warm",
+}: Props) {
   const [products, setProducts] = useState<Product[]>([]);
   const [status, setStatus] = useState<"loading" | "ready" | "empty" | "error">("loading");
 
   useEffect(() => {
     let active = true;
 
-    fetchLiveCatalogProducts()
+    fetchLiveCatalogProducts(section)
       .then((items) => {
         if (!active) return;
         setProducts(compact ? items.slice(0, 4) : items);
@@ -30,22 +44,30 @@ export default function LiveCatalog({ compact = false }: Props) {
     return () => {
       active = false;
     };
-  }, [compact]);
+  }, [compact, section]);
 
   if (status === "empty") return null;
 
+  const sectionClass = tone === "dark"
+    ? "bg-charcoal text-white"
+    : tone === "ivory"
+      ? "bg-ivory"
+      : "bg-warm-white";
+  const headingClass = tone === "dark" ? "text-white" : "text-charcoal";
+  const bodyClass = tone === "dark" ? "text-white/55" : "text-warm-gray";
+
   return (
-    <section className={`${compact ? "py-16 md:py-20 bg-warm-white" : "py-12 bg-warm-white"}`}>
+    <section className={`${compact ? "py-16 md:py-20" : "py-12"} ${sectionClass}`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6">
         <AnimatedSection className="text-center mb-10">
           <p className="text-gold text-xs tracking-[0.3em] uppercase mb-3">
-            Backend Connected
+            {eyebrow}
           </p>
-          <h2 className="font-display text-3xl md:text-5xl text-charcoal">
-            Live from Laoban Studio
+          <h2 className={`font-display text-3xl md:text-5xl ${headingClass}`}>
+            {title}
           </h2>
-          <p className="text-warm-gray text-sm mt-3">
-            Products uploaded in Laoban Admin appear here automatically.
+          <p className={`${bodyClass} text-sm mt-3`}>
+            {description}
           </p>
         </AnimatedSection>
 
@@ -58,8 +80,8 @@ export default function LiveCatalog({ compact = false }: Props) {
         )}
 
         {status === "error" && (
-          <p className="text-center text-sm text-warm-gray">
-            Live catalog is connected but no public products could be loaded right now.
+          <p className={`text-center text-sm ${bodyClass}`}>
+            {emptyMessage || "Live catalog is connected but no public products could be loaded right now."}
           </p>
         )}
 
