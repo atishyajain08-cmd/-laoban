@@ -189,6 +189,16 @@ export default function ProductCard({ product, index = 0 }: Props) {
             <p className="text-sm text-warm-gray leading-relaxed mb-6">
               {product.description}
             </p>
+            {product.pdfUrl && (
+              <a
+                href={product.pdfUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mb-6 inline-flex w-fit items-center border-b border-gold pb-1 text-xs uppercase tracking-[0.18em] text-gold hover:text-gold-dark"
+              >
+                View PDF Gallery
+              </a>
+            )}
             <div className="mb-4">
               <p className="text-xs tracking-[0.1em] uppercase font-medium mb-2">Sizes</p>
               <div className="flex gap-2">
@@ -224,16 +234,28 @@ export default function ProductCard({ product, index = 0 }: Props) {
                 View Full Details
               </Link>
             ) : (
-              <button
-                type="button"
-                className="bg-charcoal text-white py-3 text-sm tracking-[0.15em] uppercase hover:bg-gold transition-colors"
-                onClick={() => {
-                  addToCart(product, product.sizes[1] || product.sizes[0], product.colors[0].name);
-                  setQuickView(false);
-                }}
-              >
-                Add to Cart
-              </button>
+              <div className="space-y-3">
+                <button
+                  type="button"
+                  className="w-full bg-charcoal text-white py-3 text-sm tracking-[0.15em] uppercase hover:bg-gold transition-colors"
+                  onClick={() => {
+                    addToCart(product, product.sizes[1] || product.sizes[0], product.colors[0].name);
+                    setQuickView(false);
+                  }}
+                >
+                  Add to Cart
+                </button>
+                {product.pdfUrl && (
+                  <a
+                    href={product.pdfUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="block text-center border border-charcoal py-3 text-sm tracking-[0.15em] uppercase text-charcoal hover:border-gold hover:text-gold transition-colors"
+                  >
+                    Open PDF Gallery
+                  </a>
+                )}
+              </div>
             )}
           </div>
         </div>

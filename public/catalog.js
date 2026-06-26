@@ -80,6 +80,7 @@
       section: item.section || "product",
       label: item.label || "Laoban",
       thumbnail_url: item.thumbnail_url || item.image_url || "assets/white-tshirt.svg",
+      pdf_url: item.pdf_url || "",
       image_url: item.image_url || "assets/white-tshirt.svg",
       size: item.size || "",
       inventory: item.inventory || inventoryFromDescription(item.description)
@@ -177,6 +178,7 @@
             <button class="button button--dark" type="button" data-cart-item="${itemData(item)}"><i data-lucide="shopping-bag"></i> Add to Cart</button>
             <button class="button button--light" type="button" data-wishlist-item="${itemData(item)}"><i data-lucide="heart"></i> ${saved ? "Wishlisted" : "Wishlist"}</button>
           </div>
+          ${item.pdf_url ? `<a class="text-button" href="${escapeHtml(item.pdf_url)}" target="_blank" rel="noopener noreferrer">View PDF Gallery</a>` : ""}
           <a class="text-button" href="product.html?id=${encodeURIComponent(item.id)}">View details</a>
         </div>
       </article>`;

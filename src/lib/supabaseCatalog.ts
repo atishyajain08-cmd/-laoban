@@ -18,6 +18,7 @@ interface CatalogItem {
   label?: string;
   thumbnail_url?: string;
   image_url?: string;
+  pdf_url?: string;
   is_active?: boolean;
 }
 
@@ -68,6 +69,7 @@ function itemToProduct(item: CatalogItem): Product {
     inStock: !inventory || Object.values(inventory).some((stock) => stock > 0),
     deliveryDays: 3,
     isLiveCatalog: true,
+    pdfUrl: item.pdf_url,
   };
 }
 

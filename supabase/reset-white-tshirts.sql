@@ -8,7 +8,9 @@ alter table public.catalog_items
   add column if not exists colors jsonb not null default '[{"name":"Pure White","hex":"#FFFFFF"}]'::jsonb,
   add column if not exists badge text,
   add column if not exists thumbnail_url text,
-  add column if not exists thumbnail_storage_path text;
+  add column if not exists thumbnail_storage_path text,
+  add column if not exists pdf_url text,
+  add column if not exists pdf_storage_path text;
 
 create unique index if not exists catalog_items_product_code_idx
   on public.catalog_items (product_code)

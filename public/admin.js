@@ -122,12 +122,53 @@
     return { path, publicUrl: publicData.publicUrl };
   }
 
-  async function uploadFiles(files, values, thumbnailFile) {
+  function buildRecord(values, asset, index = 0, total = 1) {
+    const imageUrl = asset.imageUrl || asset.thumbnailUrl || "assets/products/basic-white-tee.svg";
+    const thumbnailUrl = asset.thumbnailUrl || imageUrl;
+    return {
+      product_code: String(values.product_code || "").trim().toUpperCase(),
+      title: total > 1 ? `${values.title} ${index + 1}` : values.title,
+      description: descriptionWithInventory(values.description, values),
+      price: Number(values.price || 0),
+      product_type: values.product_type || "T-Shirt",
+      fit: values.fit || "Regular",
+      material: values.material || "Cotton",
+      colors: [{ name: values.color_name || "Pure White", hex: values.color_hex || "#FFFFFF" }],
+      badge: values.badge || null,
+      section: values.section,
+      label: values.section === "new-arrivals"
+        ? values.arrival_category
+        : values.section === "lookbook" ? "Lookbook" : values.section === "product" ? "Product" : "Collection",
+      thumbnail_url: thumbnailUrl,
+      thumbnail_storage_path: asset.thumbnailPath || asset.imagePath || null,
+      pdf_url: asset.pdfUrl || null,
+      pdf_storage_path: asset.pdfPath || null,
+      image_url: imageUrl,
+      storage_path: asset.imagePath || null,
+      is_active: true,
+      sort_order: index + 1
+    };
+  }
+
+  async function uploadFiles(files, values, thumbnailFile, pdfFile) {
     const records = [];
     let uploadedThumbnail = null;
+    let uploadedPdf = null;
     try {
       if (thumbnailFile?.size > 0) {
         uploadedThumbnail = await uploadCatalogFile(thumbnailFile, "thumbnail");
+      }
+      if (pdfFile?.size > 0) {
+        uploadedPdf = await uploadCatalogFile(pdfFile, "pdf");
+      }
+
+      if (!files.length) {
+        records.push(buildRecord(values, {
+          thumbnailUrl: uploadedThumbnail?.publicUrl,
+          thumbnailPath: uploadedThumbnail?.path,
+          pdfUrl: uploadedPdf?.publicUrl,
+          pdfPath: uploadedPdf?.path
+        }));
       }
 
       for (let index = 0; index < files.length; index += 1) {
@@ -135,32 +176,20 @@
         const uploadedProduct = await uploadCatalogFile(file, "product");
         const thumbnailUrl = uploadedThumbnail?.publicUrl || uploadedProduct.publicUrl;
         const thumbnailPath = uploadedThumbnail?.path || uploadedProduct.path;
-        records.push({
-          product_code: String(values.product_code || "").trim().toUpperCase(),
-          title: files.length > 1 ? `${values.title} ${index + 1}` : values.title,
-          description: descriptionWithInventory(values.description, values),
-          price: Number(values.price || 0),
-          product_type: values.product_type || "T-Shirt",
-          fit: values.fit || "Regular",
-          material: values.material || "Cotton",
-          colors: [{ name: values.color_name || "Pure White", hex: values.color_hex || "#FFFFFF" }],
-          badge: values.badge || null,
-          section: values.section,
-          label: values.section === "new-arrivals"
-            ? values.arrival_category
-            : values.section === "lookbook" ? "Lookbook" : values.section === "product" ? "Product" : "Collection",
-          thumbnail_url: thumbnailUrl,
-          thumbnail_storage_path: thumbnailPath,
-          image_url: uploadedProduct.publicUrl,
-          storage_path: uploadedProduct.path,
-          is_active: true,
-          sort_order: index + 1
-        });
+        records.push(buildRecord(values, {
+          imageUrl: uploadedProduct.publicUrl,
+          imagePath: uploadedProduct.path,
+          thumbnailUrl,
+          thumbnailPath,
+          pdfUrl: uploadedPdf?.publicUrl,
+          pdfPath: uploadedPdf?.path
+        }, index, files.length));
       }
     } catch (error) {
       const uploadedPaths = [
         uploadedThumbnail?.path,
-        ...records.flatMap((record) => [record.storage_path, record.thumbnail_storage_path])
+        uploadedPdf?.path,
+        ...records.flatMap((record) => [record.storage_path, record.thumbnail_storage_path, record.pdf_storage_path])
       ].filter(Boolean);
       if (uploadedPaths.length) await client.storage.from("catalog").remove(uploadedPaths);
       throw error;
@@ -184,12 +213,12 @@
         : "Size stock not set";
       const code = item.product_code || productCodeFromDescription(item.description) || "No code";
       const colorName = Array.isArray(item.colors) && item.colors[0]?.name ? item.colors[0].name : "Color not set";
-      const filtersText = `${item.product_type || "Product"} · ${item.fit || "Fit"} · ${colorName} · ${item.material || "Material"}${item.badge ? ` · ${item.badge}` : ""}`;
+      const filtersText = `${item.product_type || "Product"} · ${item.fit || "Fit"} · ${colorName} · ${item.material || "Material"}${item.badge ? ` · ${item.badge}` : ""}${item.pdf_url ? " · PDF gallery" : ""}`;
       return `
       <article class="admin-item">
         <img src="${escapeHtml(item.thumbnail_url || item.image_url || "assets/white-tshirt.svg")}" alt="${escapeHtml(item.title)}">
         <div><strong>${escapeHtml(item.title)}</strong><span>${escapeHtml(code)} · ${escapeHtml(filtersText)}</span><small>${stockText}</small></div>
-        <button class="icon-button" type="button" data-delete-id="${escapeHtml(item.id)}" data-storage-path="${escapeHtml(item.storage_path)}" data-thumbnail-storage-path="${escapeHtml(item.thumbnail_storage_path)}" aria-label="Remove ${escapeHtml(item.title)}"><i data-lucide="trash-2"></i></button>
+        <button class="icon-button" type="button" data-delete-id="${escapeHtml(item.id)}" data-storage-path="${escapeHtml(item.storage_path)}" data-thumbnail-storage-path="${escapeHtml(item.thumbnail_storage_path)}" data-pdf-storage-path="${escapeHtml(item.pdf_storage_path)}" aria-label="Remove ${escapeHtml(item.title)}"><i data-lucide="trash-2"></i></button>
       </article>`;
     }).join("") || "<p>No uploaded products yet.</p>";
     window.lucide?.createIcons();
@@ -295,6 +324,7 @@
     const formData = new FormData(addForm);
     const files = formData.getAll("photos").filter((file) => file.size > 0);
     const thumbnailFile = formData.get("thumbnail");
+    const pdfFile = formData.get("product_pdf");
     const values = Object.fromEntries(formData);
     const submitButton = addForm.querySelector("button[type='submit']");
     submitButton.disabled = true;
@@ -302,18 +332,22 @@
       submitButton.disabled = false;
       return message(addMessage, "Product code is required.", "error");
     }
+    if (!files.length && !(pdfFile?.size > 0) && !(thumbnailFile?.size > 0)) {
+      submitButton.disabled = false;
+      return message(addMessage, "Upload a product PDF, a product photo, or a thumbnail.", "error");
+    }
     message(addMessage, "Uploading product...");
     let records = [];
     try {
-      records = await uploadFiles(files, values, thumbnailFile);
+      records = await uploadFiles(files, values, thumbnailFile, pdfFile);
       const { error } = await client.from("catalog_items").insert(records);
       if (error) throw error;
       localStorage.setItem("laoban_catalog_updated_at", String(Date.now()));
       addForm.reset();
       updateArrivalCategoryField();
-      message(addMessage, `${records.length} product photo${records.length === 1 ? "" : "s"} published successfully.`, "success");
+      message(addMessage, `${records.length} product${records.length === 1 ? "" : "s"} published successfully.`, "success");
     } catch (error) {
-      const uploadedPaths = records.flatMap((record) => [record.storage_path, record.thumbnail_storage_path]).filter(Boolean);
+      const uploadedPaths = records.flatMap((record) => [record.storage_path, record.thumbnail_storage_path, record.pdf_storage_path]).filter(Boolean);
       if (uploadedPaths.length) await client.storage.from("catalog").remove(uploadedPaths);
       message(addMessage, error.message, "error");
     } finally {
@@ -331,7 +365,7 @@
       button.disabled = false;
       return message(removeMessage, error.message, "error");
     }
-    const pathsToRemove = [button.dataset.storagePath, button.dataset.thumbnailStoragePath]
+    const pathsToRemove = [button.dataset.storagePath, button.dataset.thumbnailStoragePath, button.dataset.pdfStoragePath]
       .filter(Boolean)
       .filter((path, index, all) => all.indexOf(path) === index);
     if (pathsToRemove.length) {

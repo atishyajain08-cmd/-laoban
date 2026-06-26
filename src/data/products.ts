@@ -17,6 +17,7 @@ export interface Product {
   inStock: boolean;
   deliveryDays: number;
   isLiveCatalog?: boolean;
+  pdfUrl?: string;
 }
 
 const WHITE_TEE = "/-laoban/assets/products/basic-white-tee.svg";
