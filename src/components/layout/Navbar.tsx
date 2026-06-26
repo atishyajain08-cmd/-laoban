@@ -20,6 +20,7 @@ export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [shopDropdown, setShopDropdown] = useState(false);
+  const [currentUrl, setCurrentUrl] = useState({ pathname: "", search: "" });
   const { totalItems } = useCart();
   const { totalItems: wishlistCount } = useWishlist();
 
@@ -35,12 +36,48 @@ export default function Navbar() {
     return () => { document.body.style.overflow = ""; };
   }, [mobileOpen]);
 
-  const navLinks: { label: string; href: string; hasDropdown?: boolean }[] = [
-    { label: "New Arrivals", href: "/shop?filter=new" },
-    { label: "Collection", href: "/shop" },
-    { label: "Lookbook", href: "/blog" },
-    { label: "Products", href: "/shop" },
+  useEffect(() => {
+    const updateUrl = () => {
+      setCurrentUrl({
+        pathname: window.location.pathname.replace("/-laoban", "") || "/",
+        search: window.location.search,
+      });
+    };
+
+    updateUrl();
+    window.addEventListener("popstate", updateUrl);
+    window.addEventListener("pageshow", updateUrl);
+
+    return () => {
+      window.removeEventListener("popstate", updateUrl);
+      window.removeEventListener("pageshow", updateUrl);
+    };
+  }, []);
+
+  const navLinks: { label: string; href: string; key: string; hasDropdown?: boolean }[] = [
+    { label: "New Arrivals", href: "/shop?filter=new", key: "new-arrivals" },
+    { label: "Collection", href: "/shop?section=collections", key: "collection" },
+    { label: "Lookbook", href: "/shop?section=lookbook", key: "lookbook" },
+    { label: "Products", href: "/shop", key: "products" },
   ];
+
+  const isActiveLink = (key: string) => {
+    if (currentUrl.pathname !== "/shop") return false;
+    const params = new URLSearchParams(currentUrl.search);
+    const filter = params.get("filter");
+    const section = params.get("section");
+
+    if (key === "new-arrivals") return filter === "new";
+    if (key === "collection") return section === "collections";
+    if (key === "lookbook") return section === "lookbook";
+    if (key === "products") return !filter && !section;
+    return false;
+  };
+
+  const markNavClick = (href: string) => {
+    const [pathname, search = ""] = href.split("?");
+    setCurrentUrl({ pathname, search: search ? `?${search}` : "" });
+  };
 
   return (
     <>
@@ -91,10 +128,19 @@ export default function Navbar() {
                 >
                   <Link
                     href={link.href}
-                    className="text-sm tracking-[0.15em] uppercase text-charcoal hover:text-gold transition-colors duration-300 flex items-center gap-1"
+                    onClick={() => markNavClick(link.href)}
+                    aria-current={isActiveLink(link.key) ? "page" : undefined}
+                    className={`group relative flex items-center gap-1 py-2 text-sm uppercase tracking-[0.15em] transition-colors duration-300 ${
+                      isActiveLink(link.key) ? "text-gold" : "text-charcoal hover:text-gold"
+                    }`}
                   >
                     {link.label}
                     {link.hasDropdown && <ChevronDown size={14} />}
+                    <span
+                      className={`absolute -bottom-0.5 left-0 h-px bg-gold transition-all duration-300 ${
+                        isActiveLink(link.key) ? "w-full" : "w-0 group-hover:w-full"
+                      }`}
+                    />
                   </Link>
 
                   {/* Shop Dropdown */}
@@ -225,7 +271,10 @@ export default function Navbar() {
                   <Link
                     key={link.label}
                     href={link.href}
-                    onClick={() => setMobileOpen(false)}
+                    onClick={() => {
+                      markNavClick(link.href);
+                      setMobileOpen(false);
+                    }}
                     className="block px-6 py-4 text-sm tracking-[0.15em] uppercase text-charcoal hover:text-gold hover:bg-ivory transition-colors border-b border-ivory"
                   >
                     {link.label}

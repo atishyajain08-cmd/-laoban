@@ -3,7 +3,6 @@ import { useState, useMemo, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import { SlidersHorizontal, X, ChevronDown } from "lucide-react";
-import AnimatedSection from "@/components/ui/AnimatedSection";
 import ProductCard from "@/components/product/ProductCard";
 import LiveCatalog from "@/components/home/LiveCatalog";
 import { products } from "@/data/products";
@@ -121,31 +120,7 @@ function ShopContent() {
 
   return (
     <div className="min-h-screen bg-warm-white">
-      {/* Header */}
-      <div className="bg-charcoal text-white py-16 md:py-24">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 text-center">
-          <AnimatedSection>
-            <p className="text-gold text-xs tracking-[0.3em] uppercase mb-3">
-              Collections
-            </p>
-            <h1 className="font-display text-4xl md:text-6xl">
-              {filterParam === "new"
-                ? "New Arrivals"
-                : filterParam === "sale"
-                ? "Sale"
-                : filterParam === "bestseller"
-                ? "Best Sellers"
-                : selectedCategory !== "all"
-                ? categories.find((c) => c.slug === selectedCategory)?.name || "Shop"
-                : "Shop All"}
-            </h1>
-          </AnimatedSection>
-        </div>
-      </div>
-
-      <LiveCatalog />
-
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 md:py-10">
         {/* Toolbar */}
         <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
           <div className="flex items-center gap-4">
@@ -318,6 +293,8 @@ function ShopContent() {
             </div>
           </motion.div>
         )}
+
+        <LiveCatalog />
 
         {/* Product Grid */}
         {filtered.length > 0 ? (
