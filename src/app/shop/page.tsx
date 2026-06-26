@@ -22,6 +22,31 @@ function ShopContent() {
   const searchParams = useSearchParams();
   const categoryParam = searchParams.get("category");
   const filterParam = searchParams.get("filter");
+  const sectionParam = searchParams.get("section");
+  const activeShopSection = sectionParam || (filterParam === "new" ? "new-arrivals" : "");
+  const sectionLabels: Record<string, { eyebrow: string; title: string; description: string }> = {
+    "new-arrivals": {
+      eyebrow: "New Arrivals",
+      title: "New Arrivals",
+      description: "Only products uploaded under New Arrivals in Laoban Admin appear here.",
+    },
+    collections: {
+      eyebrow: "Collection",
+      title: "Collection",
+      description: "Only products uploaded under Collection in Laoban Admin appear here.",
+    },
+    lookbook: {
+      eyebrow: "Lookbook",
+      title: "Lookbook",
+      description: "Only shoppable lookbook products uploaded in Laoban Admin appear here.",
+    },
+    product: {
+      eyebrow: "Products",
+      title: "Products",
+      description: "Only products uploaded under Product section in Laoban Admin appear here.",
+    },
+  };
+  const activeSectionCopy = activeShopSection ? sectionLabels[activeShopSection] : undefined;
 
   const [selectedCategory, setSelectedCategory] = useState(categoryParam || "all");
   const [selectedSizes, setSelectedSizes] = useState<string[]>([]);
@@ -132,7 +157,9 @@ function ShopContent() {
               Filters {activeFilterCount > 0 && <span className="ml-1 text-gold">({activeFilterCount})</span>}
             </button>
             <span className="text-sm text-warm-gray">
-              {filtered.length} product{filtered.length !== 1 ? "s" : ""}
+              {activeShopSection
+                ? `${activeSectionCopy?.title || "Selected section"} products`
+                : `${filtered.length} product${filtered.length !== 1 ? "s" : ""}`}
             </span>
           </div>
 
@@ -282,7 +309,9 @@ function ShopContent() {
             </div>
             <div className="mt-6 flex flex-wrap items-center justify-between gap-3 border-t border-ivory-dark pt-5">
               <p className="text-xs uppercase tracking-[0.18em] text-warm-gray">
-                Showing {filtered.length} matching product{filtered.length !== 1 ? "s" : ""}
+                {activeShopSection
+                  ? `Filtering ${activeSectionCopy?.title || "selected section"} products`
+                  : `Showing ${filtered.length} matching product${filtered.length !== 1 ? "s" : ""}`}
               </p>
               <button
                 onClick={resetFilters}
@@ -294,21 +323,38 @@ function ShopContent() {
           </motion.div>
         )}
 
-        <LiveCatalog />
+        <LiveCatalog
+          section={activeShopSection || undefined}
+          eyebrow={activeSectionCopy?.eyebrow}
+          title={activeSectionCopy?.title}
+          description={activeSectionCopy?.description}
+          emptyMessage={
+            activeShopSection
+              ? `No products have been uploaded under ${activeSectionCopy?.title || "this section"} yet.`
+              : undefined
+          }
+          showEmpty={Boolean(activeShopSection)}
+          searchQuery={searchQuery}
+          sortBy={sortBy}
+          selectedSizes={selectedSizes}
+          selectedColors={selectedColors}
+          selectedBadges={selectedBadges}
+          priceRange={priceRange}
+        />
 
         {/* Product Grid */}
-        {filtered.length > 0 ? (
+        {!activeShopSection && filtered.length > 0 ? (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
             {filtered.map((product, i) => (
               <ProductCard key={product.id} product={product} index={i} />
             ))}
           </div>
-        ) : (
+        ) : !activeShopSection ? (
           <div className="text-center py-20">
             <p className="font-display text-2xl text-charcoal mb-2">No products found</p>
             <p className="text-warm-gray text-sm">Try adjusting your filters or search query.</p>
           </div>
-        )}
+        ) : null}
       </div>
     </div>
   );

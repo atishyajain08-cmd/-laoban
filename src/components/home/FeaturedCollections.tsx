@@ -9,7 +9,7 @@ const flashcards = [
     eyebrow: "New Arrivals",
     title: "Fresh Drops",
     copy: "Latest Laoban essentials, cut clean for everyday presence.",
-    href: "/shop?filter=new",
+    href: "/shop?section=new-arrivals",
     image: "/-laoban/assets/campaign/hero-black.png",
   },
   {
@@ -30,7 +30,7 @@ const flashcards = [
     eyebrow: "Products",
     title: "Shop All",
     copy: "Browse every live product uploaded from Laoban backend.",
-    href: "/shop",
+    href: "/shop?section=product",
     image: "/-laoban/assets/campaign/forest-polo.png",
   },
 ];

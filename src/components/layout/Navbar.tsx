@@ -55,10 +55,10 @@ export default function Navbar() {
   }, []);
 
   const navLinks: { label: string; href: string; key: string; hasDropdown?: boolean }[] = [
-    { label: "New Arrivals", href: "/shop?filter=new", key: "new-arrivals" },
+    { label: "New Arrivals", href: "/shop?section=new-arrivals", key: "new-arrivals" },
     { label: "Collection", href: "/shop?section=collections", key: "collection" },
     { label: "Lookbook", href: "/shop?section=lookbook", key: "lookbook" },
-    { label: "Products", href: "/shop", key: "products" },
+    { label: "Products", href: "/shop?section=product", key: "products" },
   ];
 
   const isActiveLink = (key: string) => {
@@ -67,10 +67,10 @@ export default function Navbar() {
     const filter = params.get("filter");
     const section = params.get("section");
 
-    if (key === "new-arrivals") return filter === "new";
+    if (key === "new-arrivals") return section === "new-arrivals" || filter === "new";
     if (key === "collection") return section === "collections";
     if (key === "lookbook") return section === "lookbook";
-    if (key === "products") return !filter && !section;
+    if (key === "products") return section === "product" || (!filter && !section);
     return false;
   };
 
