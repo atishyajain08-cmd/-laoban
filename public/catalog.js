@@ -79,6 +79,7 @@
       badge: item.badge || "",
       section: item.section || "product",
       label: item.label || "Laoban",
+      thumbnail_url: item.thumbnail_url || item.image_url || "assets/white-tshirt.svg",
       image_url: item.image_url || "assets/white-tshirt.svg",
       size: item.size || "",
       inventory: item.inventory || inventoryFromDescription(item.description)
@@ -164,7 +165,7 @@
       <article class="product-card is-visible">
         <button class="wishlist${saved ? " is-active" : ""}" type="button" data-wishlist-item="${itemData(item)}" aria-label="${saved ? "Remove" : "Add"} ${escapeHtml(item.title)} ${saved ? "from" : "to"} wishlist"><i data-lucide="heart"></i></button>
         <a class="product-card__image" href="product.html?id=${encodeURIComponent(item.id)}">
-          <img src="${escapeHtml(item.image_url || "assets/white-tshirt.svg")}" alt="${escapeHtml(item.title)}">
+          <img src="${escapeHtml(item.thumbnail_url || item.image_url || "assets/white-tshirt.svg")}" alt="${escapeHtml(item.title)}">
         </a>
         <div class="product-card__body">
           <span>${escapeHtml(item.label || "Laoban")}</span>

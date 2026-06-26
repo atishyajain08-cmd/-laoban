@@ -16,20 +16,21 @@ interface CatalogItem {
   badge?: "new" | "bestseller" | "sale";
   section?: string;
   label?: string;
+  thumbnail_url?: string;
   image_url?: string;
   is_active?: boolean;
 }
 
 function cleanDescription(description?: string) {
   return String(description || "")
-    .replace(/\s*\[laoban_stock:S=\d+,M=\d+,L=\d+,XL=\d+\]\s*/g, "")
+    .replace(/\s*\[laoban_stock:S=\d+,M=\d+,L=\d+,XL=\d+(?:,XXL=\d+)?\]\s*/g, "")
     .trim();
 }
 
 function inventoryFromDescription(description?: string) {
-  const match = String(description || "").match(/\[laoban_stock:S=(\d+),M=(\d+),L=(\d+),XL=(\d+)\]/);
+  const match = String(description || "").match(/\[laoban_stock:S=(\d+),M=(\d+),L=(\d+),XL=(\d+)(?:,XXL=(\d+))?\]/);
   return match
-    ? { S: Number(match[1]), M: Number(match[2]), L: Number(match[3]), XL: Number(match[4]) }
+    ? { S: Number(match[1]), M: Number(match[2]), L: Number(match[3]), XL: Number(match[4]), XXL: Number(match[5] || 0) }
     : null;
 }
 
@@ -44,8 +45,8 @@ function usableImage(url?: string) {
 function itemToProduct(item: CatalogItem): Product {
   const inventory = inventoryFromDescription(item.description);
   const sizes = inventory
-    ? (["S", "M", "L", "XL"] as const).filter((size) => Number(inventory[size]) > 0)
-    : ["S", "M", "L", "XL"];
+    ? (["S", "M", "L", "XL", "XXL"] as const).filter((size) => Number(inventory[size]) > 0)
+    : ["S", "M", "L", "XL", "XXL"];
 
   return {
     id: `live-${item.id}`,
@@ -56,8 +57,8 @@ function itemToProduct(item: CatalogItem): Product {
     description: cleanDescription(item.description) || "Premium Laoban menswear piece from the live catalog.",
     category: item.product_type?.toLowerCase() || item.section || "live catalog",
     subcategory: item.fit || item.label || "Laoban",
-    images: [usableImage(item.image_url)],
-    sizes: sizes.length ? sizes : ["S", "M", "L", "XL"],
+    images: [usableImage(item.thumbnail_url || item.image_url)],
+    sizes: sizes.length ? sizes : ["S", "M", "L", "XL", "XXL"],
     colors: Array.isArray(item.colors) && item.colors.length
       ? item.colors
       : [{ name: "Pure White", hex: "#FFFFFF" }],

@@ -13,6 +13,8 @@ create table if not exists public.catalog_items (
   badge text,
   section text not null default 'product',
   label text not null default 'Product',
+  thumbnail_url text,
+  thumbnail_storage_path text,
   image_url text not null,
   storage_path text,
   is_active boolean not null default true,
@@ -29,7 +31,9 @@ alter table public.catalog_items
   add column if not exists fit text not null default 'Regular',
   add column if not exists material text not null default 'Cotton',
   add column if not exists colors jsonb not null default '[{"name":"Pure White","hex":"#FFFFFF"}]'::jsonb,
-  add column if not exists badge text;
+  add column if not exists badge text,
+  add column if not exists thumbnail_url text,
+  add column if not exists thumbnail_storage_path text;
 
 create unique index if not exists catalog_items_product_code_idx
   on public.catalog_items (product_code)

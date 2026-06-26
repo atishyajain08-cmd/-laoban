@@ -6,7 +6,9 @@ alter table public.catalog_items
   add column if not exists fit text not null default 'Regular',
   add column if not exists material text not null default 'Cotton',
   add column if not exists colors jsonb not null default '[{"name":"Pure White","hex":"#FFFFFF"}]'::jsonb,
-  add column if not exists badge text;
+  add column if not exists badge text,
+  add column if not exists thumbnail_url text,
+  add column if not exists thumbnail_storage_path text;
 
 create unique index if not exists catalog_items_product_code_idx
   on public.catalog_items (product_code)
@@ -15,7 +17,7 @@ create unique index if not exists catalog_items_product_code_idx
 delete from public.catalog_items;
 
 insert into public.catalog_items
-  (product_code, title, description, price, product_type, fit, material, colors, badge, section, label, image_url, storage_path, is_active, sort_order)
+  (product_code, title, description, price, product_type, fit, material, colors, badge, section, label, thumbnail_url, image_url, storage_path, is_active, sort_order)
 values
   (
     'LBN-WT-001',
@@ -29,6 +31,7 @@ values
     'bestseller',
     'new-arrivals',
     'Casual',
+    'assets/products/basic-white-tee.svg',
     'assets/products/basic-white-tee.svg',
     null,
     true,
@@ -47,6 +50,7 @@ values
     'new-arrivals',
     'Casual',
     'assets/products/basic-white-tee.svg',
+    'assets/products/basic-white-tee.svg',
     null,
     true,
     2
@@ -63,6 +67,7 @@ values
     'sale',
     'product',
     'Product',
+    'assets/products/basic-white-tee.svg',
     'assets/products/basic-white-tee.svg',
     null,
     true,
@@ -81,6 +86,7 @@ values
     'collections',
     'Collection',
     'assets/products/basic-white-tee.svg',
+    'assets/products/basic-white-tee.svg',
     null,
     true,
     4
@@ -98,6 +104,7 @@ values
     'lookbook',
     'Lookbook',
     'assets/products/basic-white-tee.svg',
+    'assets/products/basic-white-tee.svg',
     null,
     true,
     5
@@ -114,6 +121,7 @@ values
     null,
     'product',
     'Product',
+    'assets/products/basic-white-tee.svg',
     'assets/products/basic-white-tee.svg',
     null,
     true,

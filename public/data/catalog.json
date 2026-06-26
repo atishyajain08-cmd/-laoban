@@ -7,6 +7,7 @@
     "price": 999,
     "section": "new-arrivals",
     "label": "Casual",
+    "thumbnail_url": "assets/products/basic-white-tee.svg",
     "image_url": "assets/products/basic-white-tee.svg",
     "is_active": true,
     "sort_order": 1
@@ -19,6 +20,7 @@
     "price": 1099,
     "section": "new-arrivals",
     "label": "Casual",
+    "thumbnail_url": "assets/products/basic-white-tee.svg",
     "image_url": "assets/products/basic-white-tee.svg",
     "is_active": true,
     "sort_order": 2
@@ -31,6 +33,7 @@
     "price": 1199,
     "section": "product",
     "label": "Product",
+    "thumbnail_url": "assets/products/basic-white-tee.svg",
     "image_url": "assets/products/basic-white-tee.svg",
     "is_active": true,
     "sort_order": 3

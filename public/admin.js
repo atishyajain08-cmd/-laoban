@@ -110,20 +110,31 @@
     return data.session;
   }
 
-  async function uploadFiles(files, values) {
+  async function uploadCatalogFile(file, prefix = "product") {
+    const extension = file.name.split(".").pop().toLowerCase();
+    const path = `${prefix}-${Date.now()}-${crypto.randomUUID()}.${extension}`;
+    const { error: uploadError } = await client.storage.from("catalog").upload(path, file, {
+      cacheControl: "3600",
+      upsert: false
+    });
+    if (uploadError) throw uploadError;
+    const { data: publicData } = client.storage.from("catalog").getPublicUrl(path);
+    return { path, publicUrl: publicData.publicUrl };
+  }
+
+  async function uploadFiles(files, values, thumbnailFile) {
     const records = [];
+    let uploadedThumbnail = null;
     try {
+      if (thumbnailFile?.size > 0) {
+        uploadedThumbnail = await uploadCatalogFile(thumbnailFile, "thumbnail");
+      }
+
       for (let index = 0; index < files.length; index += 1) {
         const file = files[index];
-        const extension = file.name.split(".").pop().toLowerCase();
-        const path = `${Date.now()}-${crypto.randomUUID()}.${extension}`;
-        const { error: uploadError } = await client.storage.from("catalog").upload(path, file, {
-          cacheControl: "3600",
-          upsert: false
-        });
-        if (uploadError) throw uploadError;
-
-        const { data: publicData } = client.storage.from("catalog").getPublicUrl(path);
+        const uploadedProduct = await uploadCatalogFile(file, "product");
+        const thumbnailUrl = uploadedThumbnail?.publicUrl || uploadedProduct.publicUrl;
+        const thumbnailPath = uploadedThumbnail?.path || uploadedProduct.path;
         records.push({
           product_code: String(values.product_code || "").trim().toUpperCase(),
           title: files.length > 1 ? `${values.title} ${index + 1}` : values.title,
@@ -138,14 +149,19 @@
           label: values.section === "new-arrivals"
             ? values.arrival_category
             : values.section === "lookbook" ? "Lookbook" : values.section === "product" ? "Product" : "Collection",
-          image_url: publicData.publicUrl,
-          storage_path: path,
+          thumbnail_url: thumbnailUrl,
+          thumbnail_storage_path: thumbnailPath,
+          image_url: uploadedProduct.publicUrl,
+          storage_path: uploadedProduct.path,
           is_active: true,
           sort_order: index + 1
         });
       }
     } catch (error) {
-      const uploadedPaths = records.map((record) => record.storage_path);
+      const uploadedPaths = [
+        uploadedThumbnail?.path,
+        ...records.flatMap((record) => [record.storage_path, record.thumbnail_storage_path])
+      ].filter(Boolean);
       if (uploadedPaths.length) await client.storage.from("catalog").remove(uploadedPaths);
       throw error;
     }
@@ -171,9 +187,9 @@
       const filtersText = `${item.product_type || "Product"} · ${item.fit || "Fit"} · ${colorName} · ${item.material || "Material"}${item.badge ? ` · ${item.badge}` : ""}`;
       return `
       <article class="admin-item">
-        <img src="${escapeHtml(item.image_url || "assets/white-tshirt.svg")}" alt="${escapeHtml(item.title)}">
+        <img src="${escapeHtml(item.thumbnail_url || item.image_url || "assets/white-tshirt.svg")}" alt="${escapeHtml(item.title)}">
         <div><strong>${escapeHtml(item.title)}</strong><span>${escapeHtml(code)} · ${escapeHtml(filtersText)}</span><small>${stockText}</small></div>
-        <button class="icon-button" type="button" data-delete-id="${escapeHtml(item.id)}" data-storage-path="${escapeHtml(item.storage_path)}" aria-label="Remove ${escapeHtml(item.title)}"><i data-lucide="trash-2"></i></button>
+        <button class="icon-button" type="button" data-delete-id="${escapeHtml(item.id)}" data-storage-path="${escapeHtml(item.storage_path)}" data-thumbnail-storage-path="${escapeHtml(item.thumbnail_storage_path)}" aria-label="Remove ${escapeHtml(item.title)}"><i data-lucide="trash-2"></i></button>
       </article>`;
     }).join("") || "<p>No uploaded products yet.</p>";
     window.lucide?.createIcons();
@@ -278,6 +294,7 @@
     if (!client) return;
     const formData = new FormData(addForm);
     const files = formData.getAll("photos").filter((file) => file.size > 0);
+    const thumbnailFile = formData.get("thumbnail");
     const values = Object.fromEntries(formData);
     const submitButton = addForm.querySelector("button[type='submit']");
     submitButton.disabled = true;
@@ -288,7 +305,7 @@
     message(addMessage, "Uploading product...");
     let records = [];
     try {
-      records = await uploadFiles(files, values);
+      records = await uploadFiles(files, values, thumbnailFile);
       const { error } = await client.from("catalog_items").insert(records);
       if (error) throw error;
       localStorage.setItem("laoban_catalog_updated_at", String(Date.now()));
@@ -296,7 +313,7 @@
       updateArrivalCategoryField();
       message(addMessage, `${records.length} product photo${records.length === 1 ? "" : "s"} published successfully.`, "success");
     } catch (error) {
-      const uploadedPaths = records.map((record) => record.storage_path).filter(Boolean);
+      const uploadedPaths = records.flatMap((record) => [record.storage_path, record.thumbnail_storage_path]).filter(Boolean);
       if (uploadedPaths.length) await client.storage.from("catalog").remove(uploadedPaths);
       message(addMessage, error.message, "error");
     } finally {
@@ -314,8 +331,11 @@
       button.disabled = false;
       return message(removeMessage, error.message, "error");
     }
-    if (button.dataset.storagePath) {
-      await client.storage.from("catalog").remove([button.dataset.storagePath]);
+    const pathsToRemove = [button.dataset.storagePath, button.dataset.thumbnailStoragePath]
+      .filter(Boolean)
+      .filter((path, index, all) => all.indexOf(path) === index);
+    if (pathsToRemove.length) {
+      await client.storage.from("catalog").remove(pathsToRemove);
     }
     localStorage.setItem("laoban_catalog_updated_at", String(Date.now()));
     message(removeMessage, "Product removed.", "success");
