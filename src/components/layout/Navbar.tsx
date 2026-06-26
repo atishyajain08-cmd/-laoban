@@ -130,14 +130,12 @@ export default function Navbar() {
                     href={link.href}
                     onClick={() => markNavClick(link.href)}
                     aria-current={isActiveLink(link.key) ? "page" : undefined}
-                    className={`group relative flex items-center gap-1 py-2 text-sm uppercase tracking-[0.15em] transition-colors duration-300 ${
-                      isActiveLink(link.key) ? "text-gold" : "text-charcoal hover:text-gold"
-                    }`}
+                    className="group relative flex items-center gap-1 py-2 text-sm uppercase tracking-[0.15em] text-charcoal transition-colors duration-300 hover:text-charcoal"
                   >
                     {link.label}
                     {link.hasDropdown && <ChevronDown size={14} />}
                     <span
-                      className={`absolute -bottom-0.5 left-0 h-px bg-gold transition-all duration-300 ${
+                      className={`absolute -bottom-0.5 left-0 h-px bg-charcoal transition-all duration-300 ${
                         isActiveLink(link.key) ? "w-full" : "w-0 group-hover:w-full"
                       }`}
                     />
