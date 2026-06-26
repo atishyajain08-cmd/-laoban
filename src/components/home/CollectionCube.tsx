@@ -6,16 +6,16 @@ import { useRouter } from "next/navigation";
 import * as THREE from "three";
 import AnimatedSection from "@/components/ui/AnimatedSection";
 
-// Four basic black tees — one per cube in the row.
+// Four basic white tees — one per cube in the row.
 const TEES = [
-  { slug: "noir-essential-crew-tee", name: "Noir Crew", price: 1299 },
-  { slug: "midnight-v-neck-tee", name: "Midnight V-Neck", price: 1499 },
-  { slug: "shadow-oversized-tee", name: "Shadow Oversized", price: 1799 },
-  { slug: "obsidian-boxy-tee", name: "Obsidian Boxy", price: 1199 },
+  { slug: "laoban-classic-white-crew-tee", name: "Classic White", price: 999 },
+  { slug: "laoban-regular-fit-white-tee", name: "Regular White", price: 1099 },
+  { slug: "laoban-oversized-white-tee", name: "Oversized White", price: 1199 },
+  { slug: "laoban-premium-heavyweight-white-tee", name: "Heavyweight White", price: 1399 },
 ];
 
 function drawTee(ctx) {
-  ctx.fillStyle = "#161616";
+  ctx.fillStyle = "#fbfaf6";
   ctx.beginPath();
   ctx.moveTo(150, 210);
   ctx.lineTo(212, 168);
@@ -39,10 +39,10 @@ function makeTexture(name, price, rotated) {
   canvas.width = canvas.height = size;
   const ctx = canvas.getContext("2d");
 
-  ctx.fillStyle = "#faf3e0";
+  ctx.fillStyle = "#f3ead8";
   ctx.fillRect(0, 0, size, size);
-  ctx.strokeStyle = "rgba(26,26,26,0.16)";
-  ctx.lineWidth = 6;
+  ctx.strokeStyle = "rgba(166,139,75,0.35)";
+  ctx.lineWidth = 8;
   ctx.strokeRect(22, 22, size - 44, size - 44);
 
   ctx.textAlign = "center";
@@ -88,11 +88,11 @@ function TeeCube({ x, s, front, back, slug, onSelect }) {
       }}
     >
       <boxGeometry args={[s, s, s]} />
-      {/* +X, -X, +Y, -Y = charcoal ; +Z front tee ; -Z back tee */}
-      <meshBasicMaterial attach="material-0" color="#1a1a1a" />
-      <meshBasicMaterial attach="material-1" color="#1a1a1a" />
-      <meshBasicMaterial attach="material-2" color="#171717" />
-      <meshBasicMaterial attach="material-3" color="#171717" />
+      {/* +X, -X, +Y, -Y = dark luxury edges ; +Z front tee ; -Z back tee */}
+      <meshBasicMaterial attach="material-0" color="#0f0f0f" />
+      <meshBasicMaterial attach="material-1" color="#0f0f0f" />
+      <meshBasicMaterial attach="material-2" color="#141414" />
+      <meshBasicMaterial attach="material-3" color="#141414" />
       <meshBasicMaterial attach="material-4" map={front} toneMapped={false} />
       <meshBasicMaterial attach="material-5" map={back} toneMapped={false} />
     </mesh>
@@ -109,8 +109,8 @@ function Row({ data, onSelect }) {
     if (group.current && !reduced) group.current.rotation.x += delta * 0.5; // tumble upward
   });
 
-  const s = 1.0;
-  const spacing = 1.2; // 0.2 gap between cubes = visible separation line
+  const s = 2.45;
+  const spacing = 2.8; // visible separation line while still filling the screen
   return (
     <group ref={group}>
       {data.map((d, i) => (
@@ -129,17 +129,18 @@ export default function CollectionCube() {
   const onSelect = (slug) => router.push(`/shop/product/${slug}`);
 
   return (
-    <section className="py-20 md:py-28 bg-warm-white text-center overflow-hidden">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6">
-        <AnimatedSection className="mb-6">
+    <section className="relative min-h-screen bg-warm-white text-center overflow-hidden">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_35%,rgba(200,169,110,0.22),transparent_34%),linear-gradient(180deg,#fffaf0_0%,#f0e4cf_100%)]" />
+      <div className="relative z-10 mx-auto flex min-h-screen max-w-[1600px] flex-col px-4 sm:px-6">
+        <AnimatedSection className="pb-2 pt-14 md:pt-20">
           <p className="text-gold text-xs tracking-[0.3em] uppercase mb-3">The Collection</p>
           <h2 className="font-display text-3xl md:text-5xl text-charcoal">
-            Our <span className="text-gradient-gold italic">Black Tees</span>
+            Our <span className="text-gradient-gold italic">White Tees</span>
           </h2>
           <p className="text-warm-gray text-sm mt-4 max-w-md mx-auto">Tap a block to shop the piece.</p>
         </AnimatedSection>
-        <div className="h-[360px] md:h-[460px]">
-          <Canvas camera={{ position: [0, 0.8, 11], fov: 30 }} dpr={[1, 2]}>
+        <div className="relative -mx-8 flex-1 min-h-[72vh] md:-mx-16">
+          <Canvas camera={{ position: [0, 1.1, 9.2], fov: 43 }} dpr={[1, 2]}>
             <Row data={data} onSelect={onSelect} />
           </Canvas>
         </div>

@@ -25,10 +25,37 @@ function ShopContent() {
   const filterParam = searchParams.get("filter");
 
   const [selectedCategory, setSelectedCategory] = useState(categoryParam || "all");
+  const [selectedSizes, setSelectedSizes] = useState<string[]>([]);
+  const [selectedColors, setSelectedColors] = useState<string[]>([]);
+  const [selectedBadges, setSelectedBadges] = useState<string[]>([]);
   const [sortBy, setSortBy] = useState<SortOption>("newest");
-  const [priceRange, setPriceRange] = useState<[number, number]>([0, 15000]);
+  const [priceRange, setPriceRange] = useState<[number, number]>([0, 2000]);
   const [showFilters, setShowFilters] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+
+  const availableSizes = useMemo(
+    () => Array.from(new Set(products.flatMap((p) => p.sizes))).sort((a, b) => ["XS", "S", "M", "L", "XL", "XXL"].indexOf(a) - ["XS", "S", "M", "L", "XL", "XXL"].indexOf(b)),
+    []
+  );
+
+  const availableColors = useMemo(
+    () => Array.from(new Set(products.flatMap((p) => p.colors.map((c) => c.name)))),
+    []
+  );
+
+  const toggleValue = (value: string, values: string[], setter: (next: string[]) => void) => {
+    setter(values.includes(value) ? values.filter((item) => item !== value) : [...values, value]);
+  };
+
+  const resetFilters = () => {
+    setSelectedCategory("all");
+    setSelectedSizes([]);
+    setSelectedColors([]);
+    setSelectedBadges([]);
+    setPriceRange([0, 2000]);
+    setSearchQuery("");
+    setSortBy("newest");
+  };
 
   const filtered = useMemo(() => {
     let result = [...products];
@@ -44,6 +71,18 @@ function ShopContent() {
     result = result.filter(
       (p) => p.price >= priceRange[0] && p.price <= priceRange[1]
     );
+
+    if (selectedSizes.length > 0) {
+      result = result.filter((p) => selectedSizes.some((size) => p.sizes.includes(size)));
+    }
+
+    if (selectedColors.length > 0) {
+      result = result.filter((p) => p.colors.some((color) => selectedColors.includes(color.name)));
+    }
+
+    if (selectedBadges.length > 0) {
+      result = result.filter((p) => p.badge && selectedBadges.includes(p.badge));
+    }
 
     if (searchQuery) {
       const q = searchQuery.toLowerCase();
@@ -70,7 +109,15 @@ function ShopContent() {
     }
 
     return result;
-  }, [selectedCategory, sortBy, priceRange, searchQuery, filterParam]);
+  }, [selectedCategory, selectedSizes, selectedColors, selectedBadges, sortBy, priceRange, searchQuery, filterParam]);
+
+  const activeFilterCount =
+    (selectedCategory !== "all" ? 1 : 0)
+    + selectedSizes.length
+    + selectedColors.length
+    + selectedBadges.length
+    + (priceRange[0] !== 0 || priceRange[1] !== 2000 ? 1 : 0)
+    + (searchQuery ? 1 : 0);
 
   return (
     <div className="min-h-screen bg-warm-white">
@@ -107,7 +154,7 @@ function ShopContent() {
               className="flex items-center gap-2 px-4 py-2 border border-ivory-dark text-sm hover:border-gold transition-colors"
             >
               <SlidersHorizontal size={16} />
-              Filters
+              Filters {activeFilterCount > 0 && <span className="ml-1 text-gold">({activeFilterCount})</span>}
             </button>
             <span className="text-sm text-warm-gray">
               {filtered.length} product{filtered.length !== 1 ? "s" : ""}
@@ -152,7 +199,7 @@ function ShopContent() {
                 <X size={18} />
               </button>
             </div>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+            <div className="grid gap-8 md:grid-cols-5">
               <div>
                 <p className="text-xs tracking-[0.1em] uppercase font-medium mb-3">Category</p>
                 <div className="space-y-2">
@@ -177,11 +224,11 @@ function ShopContent() {
                 <p className="text-xs tracking-[0.1em] uppercase font-medium mb-3">Price Range</p>
                 <div className="space-y-2">
                   {[
-                    [0, 15000, "All Prices"],
-                    [0, 3000, "Under ₹3,000"],
-                    [3000, 5000, "₹3,000 – ₹5,000"],
-                    [5000, 10000, "₹5,000 – ₹10,000"],
-                    [10000, 15000, "₹10,000+"],
+                    [0, 2000, "All Prices"],
+                    [0, 1000, "Under ₹1,000"],
+                    [1000, 1200, "₹1,000 – ₹1,200"],
+                    [1200, 1400, "₹1,200 – ₹1,400"],
+                    [1400, 2000, "₹1,400+"],
                   ].map(([min, max, label]) => (
                     <button
                       key={label as string}
@@ -197,6 +244,77 @@ function ShopContent() {
                   ))}
                 </div>
               </div>
+              <div>
+                <p className="text-xs tracking-[0.1em] uppercase font-medium mb-3">Size</p>
+                <div className="flex flex-wrap gap-2">
+                  {availableSizes.map((size) => (
+                    <button
+                      key={size}
+                      onClick={() => toggleValue(size, selectedSizes, setSelectedSizes)}
+                      className={`h-9 min-w-10 border px-3 text-xs transition-colors ${
+                        selectedSizes.includes(size)
+                          ? "border-gold bg-gold text-white"
+                          : "border-ivory-dark text-charcoal hover:border-gold"
+                      }`}
+                    >
+                      {size}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <p className="text-xs tracking-[0.1em] uppercase font-medium mb-3">Color</p>
+                <div className="space-y-2">
+                  {availableColors.map((color) => {
+                    const swatch = products.flatMap((p) => p.colors).find((c) => c.name === color)?.hex || "#fff";
+                    return (
+                      <button
+                        key={color}
+                        onClick={() => toggleValue(color, selectedColors, setSelectedColors)}
+                        className={`flex items-center gap-2 text-sm ${
+                          selectedColors.includes(color) ? "text-gold font-medium" : "text-warm-gray hover:text-charcoal"
+                        }`}
+                      >
+                        <span className="h-4 w-4 rounded-full border border-gray-300" style={{ backgroundColor: swatch }} />
+                        {color}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+              <div>
+                <p className="text-xs tracking-[0.1em] uppercase font-medium mb-3">Availability & Tags</p>
+                <div className="space-y-2">
+                  {[
+                    ["new", "New Arrivals"],
+                    ["bestseller", "Best Sellers"],
+                    ["sale", "Sale"],
+                  ].map(([value, label]) => (
+                    <button
+                      key={value}
+                      onClick={() => toggleValue(value, selectedBadges, setSelectedBadges)}
+                      className={`block text-sm ${
+                        selectedBadges.includes(value)
+                          ? "text-gold font-medium"
+                          : "text-warm-gray hover:text-charcoal"
+                      }`}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+            <div className="mt-6 flex flex-wrap items-center justify-between gap-3 border-t border-ivory-dark pt-5">
+              <p className="text-xs uppercase tracking-[0.18em] text-warm-gray">
+                Showing {filtered.length} matching product{filtered.length !== 1 ? "s" : ""}
+              </p>
+              <button
+                onClick={resetFilters}
+                className="text-xs uppercase tracking-[0.18em] text-charcoal underline decoration-gold underline-offset-4 hover:text-gold"
+              >
+                Clear all filters
+              </button>
             </div>
           </motion.div>
         )}

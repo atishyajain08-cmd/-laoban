@@ -52,7 +52,7 @@ function DiamondShape({ position }: { position: [number, number, number] }) {
 function BrandMark() {
   return (
     <Float speed={1.2} rotationIntensity={0.15} floatIntensity={0.4}>
-      <group rotation={[0, 0, 0.08]} scale={2.5}>
+      <group rotation={[0, 0, 0.08]} scale={4.6}>
         <mesh position={[-0.25, 0, 0]}>
           <boxGeometry args={[0.22, 1.7, 0.18]} />
           <meshStandardMaterial color="#C8A96E" metalness={0.8} roughness={0.2} />
@@ -119,8 +119,8 @@ export default function ThreeDSection() {
             </div>
           </AnimatedSection>
 
-          <AnimatedSection direction="right" className="h-[72vh] min-h-[520px] md:min-h-[680px]">
-            <Canvas camera={{ position: [0, 0, 6], fov: 42 }}>
+          <AnimatedSection direction="right" className="h-[82vh] min-h-[620px] md:min-h-[780px]">
+            <Canvas camera={{ position: [0, 0, 7], fov: 38 }}>
               <Scene />
             </Canvas>
           </AnimatedSection>
