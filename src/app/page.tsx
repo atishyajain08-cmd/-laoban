@@ -2,6 +2,7 @@
 import { useEffect } from "react";
 import dynamic from "next/dynamic";
 import Hero from "@/components/home/Hero";
+import FeaturedCollections from "@/components/home/FeaturedCollections";
 import NewArrivals from "@/components/home/NewArrivals";
 import BestSellers from "@/components/home/BestSellers";
 import Testimonials from "@/components/home/Testimonials";
@@ -13,15 +14,6 @@ const ThreeDSection = dynamic(() => import("@/components/home/ThreeDSection"), {
   ssr: false,
   loading: () => (
     <div className="py-28 bg-charcoal flex items-center justify-center">
-      <div className="shimmer w-16 h-16 rounded-full" />
-    </div>
-  ),
-});
-
-const CollectionCube = dynamic(() => import("@/components/home/CollectionCube"), {
-  ssr: false,
-  loading: () => (
-    <div className="py-28 bg-warm-white flex items-center justify-center">
       <div className="shimmer w-16 h-16 rounded-full" />
     </div>
   ),
@@ -45,7 +37,7 @@ export default function Home() {
   return (
     <>
       <Hero />
-      <CollectionCube />
+      <FeaturedCollections />
       <NewArrivals />
       <LiveCatalog compact />
       <LiveCatalog
