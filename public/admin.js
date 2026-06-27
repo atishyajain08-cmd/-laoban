@@ -58,6 +58,18 @@
     element.dataset.type = type;
   }
 
+  function friendlyUploadError(error) {
+    const text = error?.message || String(error || "");
+    const missingColumn = text.match(/Could not find the '([^']+)' column of 'catalog_items'/i)?.[1];
+    if (missingColumn) {
+      return `Supabase database is missing the "${missingColumn}" column. Open Supabase SQL Editor, run supabase/repair-catalog-columns.sql, then upload again.`;
+    }
+    if (/schema cache/i.test(text)) {
+      return `${text} Run supabase/repair-catalog-columns.sql in Supabase SQL Editor, then try again.`;
+    }
+    return text;
+  }
+
   function isAdministrator(user) {
     return user?.app_metadata?.role === "admin";
   }
@@ -353,7 +365,7 @@
     } catch (error) {
       const uploadedPaths = records.flatMap((record) => [record.storage_path, record.thumbnail_storage_path, record.pdf_storage_path]).filter(Boolean);
       if (uploadedPaths.length) await client.storage.from("catalog").remove(uploadedPaths);
-      message(addMessage, error.message, "error");
+      message(addMessage, friendlyUploadError(error), "error");
     } finally {
       submitButton.disabled = false;
     }
