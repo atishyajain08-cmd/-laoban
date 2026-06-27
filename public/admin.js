@@ -90,14 +90,44 @@
   }
 
   function descriptionWithInventory(description, values) {
-    const clean = String(description || "").replace(/\s*\[laoban_stock:S=\d+,M=\d+,L=\d+,XL=\d+(?:,XXL=\d+)?\]\s*/g, "").trim();
+    const clean = String(description || "")
+      .replace(/\s*\[laoban_stock:S=\d+,M=\d+,L=\d+,XL=\d+(?:,XXL=\d+)?\]\s*/g, "")
+      .replace(/\s*\[laoban_meta:[^\]]+\]\s*/g, "")
+      .trim();
     const stock = `[laoban_stock:S=${Number(values.stock_s)},M=${Number(values.stock_m)},L=${Number(values.stock_l)},XL=${Number(values.stock_xl)},XXL=${Number(values.stock_xxl)}]`;
     return clean ? `${clean}\n\n${stock}` : stock;
+  }
+
+  function descriptionWithMeta(description, values, asset, imageUrl, thumbnailUrl) {
+    const meta = {
+      product_code: String(values.product_code || "").trim().toUpperCase(),
+      product_type: values.product_type || "T-Shirt",
+      fit: values.fit || "Regular",
+      material: values.material || "Cotton",
+      colors: [{ name: values.color_name || "Pure White", hex: values.color_hex || "#FFFFFF" }],
+      badge: values.badge || "",
+      thumbnail_url: thumbnailUrl || "",
+      thumbnail_storage_path: asset.thumbnailPath || asset.imagePath || "",
+      pdf_url: asset.pdfUrl || "",
+      pdf_storage_path: asset.pdfPath || "",
+      image_url: imageUrl || ""
+    };
+    return `${descriptionWithInventory(description, values)}\n\n[laoban_meta:${encodeURIComponent(JSON.stringify(meta))}]`;
   }
 
   function productCodeFromDescription(description) {
     const match = String(description || "").match(/\[laoban_code:([A-Za-z0-9_-]+)\]/);
     return match ? match[1] : "";
+  }
+
+  function metaFromDescription(description) {
+    const match = String(description || "").match(/\[laoban_meta:([^\]]+)\]/);
+    if (!match) return {};
+    try {
+      return JSON.parse(decodeURIComponent(match[1]));
+    } catch {
+      return {};
+    }
   }
 
   function showDashboard() {
@@ -140,7 +170,7 @@
     return {
       product_code: String(values.product_code || "").trim().toUpperCase(),
       title: total > 1 ? `${values.title} ${index + 1}` : values.title,
-      description: descriptionWithInventory(values.description, values),
+      description: descriptionWithMeta(values.description, values, asset, imageUrl, thumbnailUrl),
       price: Number(values.price || 0),
       product_type: values.product_type || "T-Shirt",
       fit: values.fit || "Regular",
@@ -209,6 +239,31 @@
     return records;
   }
 
+  function missingCatalogColumn(error) {
+    const text = error?.message || String(error || "");
+    return text.match(/Could not find the '([^']+)' column of 'catalog_items'/i)?.[1] || "";
+  }
+
+  async function insertCatalogRecords(records) {
+    let payload = records.map((record) => ({ ...record }));
+    const strippedColumns = [];
+    for (let attempt = 0; attempt < 16; attempt += 1) {
+      const { error } = await client.from("catalog_items").insert(payload);
+      if (!error) return strippedColumns;
+
+      const missingColumn = missingCatalogColumn(error);
+      if (!missingColumn) throw error;
+
+      strippedColumns.push(missingColumn);
+      payload = payload.map((record) => {
+        const next = { ...record };
+        delete next[missingColumn];
+        return next;
+      });
+    }
+    throw new Error("Supabase catalog schema is missing too many columns. Please run supabase/repair-catalog-columns.sql.");
+  }
+
   async function loadAdminItems() {
     if (!client || !itemsRoot) return;
     itemsRoot.innerHTML = "<p>Loading catalog...</p>";
@@ -219,16 +274,19 @@
       return;
     }
     itemsRoot.innerHTML = (data || []).map((item) => {
+      const meta = metaFromDescription(item.description);
       const inventory = inventoryFromDescription(item.description);
       const stockText = inventory
         ? `S ${inventory.S} · M ${inventory.M} · L ${inventory.L} · XL ${inventory.XL} · XXL ${inventory.XXL}`
         : "Size stock not set";
-      const code = item.product_code || productCodeFromDescription(item.description) || "No code";
-      const colorName = Array.isArray(item.colors) && item.colors[0]?.name ? item.colors[0].name : "Color not set";
-      const filtersText = `${item.product_type || "Product"} · ${item.fit || "Fit"} · ${colorName} · ${item.material || "Material"}${item.badge ? ` · ${item.badge}` : ""}${item.pdf_url ? " · PDF gallery" : ""}`;
+      const code = item.product_code || meta.product_code || productCodeFromDescription(item.description) || "No code";
+      const colors = Array.isArray(item.colors) ? item.colors : meta.colors;
+      const colorName = Array.isArray(colors) && colors[0]?.name ? colors[0].name : "Color not set";
+      const pdfUrl = item.pdf_url || meta.pdf_url;
+      const filtersText = `${item.product_type || meta.product_type || "Product"} · ${item.fit || meta.fit || "Fit"} · ${colorName} · ${item.material || meta.material || "Material"}${item.badge || meta.badge ? ` · ${item.badge || meta.badge}` : ""}${pdfUrl ? " · PDF gallery" : ""}`;
       return `
       <article class="admin-item">
-        <img src="${escapeHtml(item.thumbnail_url || item.image_url || "assets/white-tshirt.svg")}" alt="${escapeHtml(item.title)}">
+        <img src="${escapeHtml(item.thumbnail_url || meta.thumbnail_url || item.image_url || meta.image_url || "assets/white-tshirt.svg")}" alt="${escapeHtml(item.title)}">
         <div><strong>${escapeHtml(item.title)}</strong><span>${escapeHtml(code)} · ${escapeHtml(filtersText)}</span><small>${stockText}</small></div>
         <button class="icon-button" type="button" data-delete-id="${escapeHtml(item.id)}" data-storage-path="${escapeHtml(item.storage_path)}" data-thumbnail-storage-path="${escapeHtml(item.thumbnail_storage_path)}" data-pdf-storage-path="${escapeHtml(item.pdf_storage_path)}" aria-label="Remove ${escapeHtml(item.title)}"><i data-lucide="trash-2"></i></button>
       </article>`;
@@ -356,12 +414,14 @@
     let records = [];
     try {
       records = await uploadFiles(files, values, thumbnailFile, pdfFile);
-      const { error } = await client.from("catalog_items").insert(records);
-      if (error) throw error;
+      const strippedColumns = await insertCatalogRecords(records);
       localStorage.setItem("laoban_catalog_updated_at", String(Date.now()));
       addForm.reset();
       updateArrivalCategoryField();
-      message(addMessage, `${records.length} product${records.length === 1 ? "" : "s"} published successfully.`, "success");
+      const fallbackNote = strippedColumns.length
+        ? ` Missing Supabase columns were bypassed: ${Array.from(new Set(strippedColumns)).join(", ")}.`
+        : "";
+      message(addMessage, `${records.length} product${records.length === 1 ? "" : "s"} published successfully.${fallbackNote}`, "success");
     } catch (error) {
       const uploadedPaths = records.flatMap((record) => [record.storage_path, record.thumbnail_storage_path, record.pdf_storage_path]).filter(Boolean);
       if (uploadedPaths.length) await client.storage.from("catalog").remove(uploadedPaths);

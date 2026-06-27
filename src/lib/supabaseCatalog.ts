@@ -25,7 +25,18 @@ interface CatalogItem {
 function cleanDescription(description?: string) {
   return String(description || "")
     .replace(/\s*\[laoban_stock:S=\d+,M=\d+,L=\d+,XL=\d+(?:,XXL=\d+)?\]\s*/g, "")
+    .replace(/\s*\[laoban_meta:[^\]]+\]\s*/g, "")
     .trim();
+}
+
+function metaFromDescription(description?: string) {
+  const match = String(description || "").match(/\[laoban_meta:([^\]]+)\]/);
+  if (!match) return {};
+  try {
+    return JSON.parse(decodeURIComponent(match[1])) as Partial<CatalogItem>;
+  } catch {
+    return {};
+  }
 }
 
 function inventoryFromDescription(description?: string) {
@@ -44,6 +55,7 @@ function usableImage(url?: string) {
 }
 
 function itemToProduct(item: CatalogItem): Product {
+  const meta = metaFromDescription(item.description);
   const inventory = inventoryFromDescription(item.description);
   const sizes = inventory
     ? (["S", "M", "L", "XL", "XXL"] as const).filter((size) => Number(inventory[size]) > 0)
@@ -51,25 +63,27 @@ function itemToProduct(item: CatalogItem): Product {
 
   return {
     id: `live-${item.id}`,
-    productCode: item.product_code || `LBN-LIVE-${item.id}`,
+    productCode: item.product_code || meta.product_code || `LBN-LIVE-${item.id}`,
     name: item.title || "Laoban Product",
     slug: "",
     price: Number(item.price || 0),
     description: cleanDescription(item.description) || "Premium Laoban menswear piece from the live catalog.",
-    category: item.product_type?.toLowerCase() || item.section || "live catalog",
-    subcategory: item.fit || item.label || "Laoban",
-    images: [usableImage(item.thumbnail_url || item.image_url)],
+    category: item.product_type?.toLowerCase() || meta.product_type?.toLowerCase() || item.section || "live catalog",
+    subcategory: item.fit || meta.fit || item.label || "Laoban",
+    images: [usableImage(item.thumbnail_url || meta.thumbnail_url || item.image_url || meta.image_url)],
     sizes: sizes.length ? sizes : ["S", "M", "L", "XL", "XXL"],
     colors: Array.isArray(item.colors) && item.colors.length
       ? item.colors
+      : Array.isArray(meta.colors) && meta.colors.length
+      ? meta.colors
       : [{ name: "Pure White", hex: "#FFFFFF" }],
     rating: 4.8,
     reviews: 0,
-    badge: item.badge || "new",
+    badge: item.badge || meta.badge || "new",
     inStock: !inventory || Object.values(inventory).some((stock) => stock > 0),
     deliveryDays: 3,
     isLiveCatalog: true,
-    pdfUrl: item.pdf_url,
+    pdfUrl: item.pdf_url || meta.pdf_url,
   };
 }
 
