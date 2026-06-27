@@ -1965,6 +1965,25 @@ blockquote cite {
   background: rgba(201, 168, 106, 0.08);
 }
 
+.admin-media {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+  border: 1px solid rgba(34, 34, 34, 0.12);
+  padding: 20px;
+  background: rgba(248, 244, 238, 0.76);
+}
+
+.admin-media legend {
+  padding: 0 8px;
+  font-weight: 800;
+}
+
+.admin-media:focus-within {
+  border-color: var(--gold);
+  box-shadow: 0 16px 34px rgba(201, 168, 106, 0.12);
+}
+
 .admin-stock legend {
   padding: 0 8px;
   font-weight: 800;

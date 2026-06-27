@@ -336,6 +336,10 @@
       submitButton.disabled = false;
       return message(addMessage, "Upload a product PDF, a product photo, or a thumbnail.", "error");
     }
+    if (pdfFile?.size > 0 && !(thumbnailFile?.size > 0) && !files.length) {
+      submitButton.disabled = false;
+      return message(addMessage, "Upload a frontend thumbnail photo also. The PDF is the gallery; the thumbnail is what customers see first.", "error");
+    }
     message(addMessage, "Uploading product...");
     let records = [];
     try {

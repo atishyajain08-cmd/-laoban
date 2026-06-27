@@ -8,12 +8,12 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="admin-styles.css?v=pdf-upload-1">
+  <link rel="stylesheet" href="admin-styles.css?v=thumbnail-upload-2">
   <script defer src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
   <script defer src="assets/vendor/supabase.min.js"></script>
   <script defer src="supabase-config.js"></script>
-  <script defer src="catalog.js?v=pdf-upload-1"></script>
-  <script defer src="admin.js?v=pdf-upload-1"></script>
+  <script defer src="catalog.js?v=thumbnail-upload-2"></script>
+  <script defer src="admin.js?v=thumbnail-upload-2"></script>
 </head>
 <body class="admin-page">
   <main class="admin-shell">
@@ -120,9 +120,21 @@
             <label>XL pieces<input type="number" name="stock_xl" min="0" step="1" value="3" required></label>
             <label>XXL pieces<input type="number" name="stock_xxl" min="0" step="1" value="2" required></label>
           </fieldset>
-          <label>Thumbnail photo<input type="file" name="thumbnail" accept="image/png,image/jpeg,image/webp"></label>
-          <label>Product PDF / gallery file<input type="file" name="product_pdf" accept="application/pdf,.pdf"></label>
-          <label>Product photos optional<input type="file" name="photos" accept="image/png,image/jpeg,image/webp" multiple></label>
+          <fieldset class="admin-media">
+            <legend>Frontend thumbnail</legend>
+            <p class="admin-stock__note">Upload the photo that should appear on the customer-facing product card. This is required when you upload a PDF gallery.</p>
+            <label>Card thumbnail photo<input type="file" name="thumbnail" accept="image/png,image/jpeg,image/webp" data-thumbnail-input></label>
+          </fieldset>
+          <fieldset class="admin-media">
+            <legend>PDF gallery</legend>
+            <p class="admin-stock__note">Upload the product PDF customers will open from the storefront. The PDF itself is not used as the card image.</p>
+            <label>Product PDF / gallery file<input type="file" name="product_pdf" accept="application/pdf,.pdf" data-pdf-input></label>
+          </fieldset>
+          <fieldset class="admin-media">
+            <legend>Extra product photos</legend>
+            <p class="admin-stock__note">Optional: upload one or more extra product photos. If no separate thumbnail is uploaded, the first product photo can be used as the card image.</p>
+            <label>Product photos optional<input type="file" name="photos" accept="image/png,image/jpeg,image/webp" multiple></label>
+          </fieldset>
           <button class="button button--dark" type="submit"><i data-lucide="upload"></i> Upload product</button>
           <p class="admin-message" data-add-message aria-live="polite"></p>
         </form>

@@ -154,6 +154,16 @@ export default function ProductCard({ product, index = 0 }: Props) {
               />
             ))}
           </div>
+          {product.pdfUrl && (
+            <a
+              href={product.pdfUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex pt-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-charcoal underline underline-offset-4 transition-colors hover:text-gold"
+            >
+              PDF Gallery
+            </a>
+          )}
         </div>
       </motion.div>
 
