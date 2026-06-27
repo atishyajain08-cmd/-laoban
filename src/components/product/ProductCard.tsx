@@ -20,7 +20,9 @@ export default function ProductCard({ product, index = 0 }: Props) {
   const { addItem: addToCart } = useCart();
   const [quickView, setQuickView] = useState(false);
   const wishlisted = isInWishlist(product.id);
-  const detailHref = product.isLiveCatalog ? "" : `/shop/product/${product.slug}`;
+  const detailHref = product.isLiveCatalog && product.liveCatalogId
+    ? `/live-product?id=${encodeURIComponent(product.liveCatalogId)}`
+    : `/shop/product/${product.slug}`;
 
   return (
     <>
@@ -33,27 +35,15 @@ export default function ProductCard({ product, index = 0 }: Props) {
       >
         {/* Image */}
         <div className="relative aspect-[3/4] overflow-hidden bg-ivory mb-4">
-          {detailHref ? (
-            <Link href={detailHref}>
-              <Image
-                src={product.images[0]}
-                alt={product.name}
-                fill
-                className="object-cover transition-transform duration-700 group-hover:scale-110"
-                sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-              />
-            </Link>
-          ) : (
-            <button type="button" onClick={() => setQuickView(true)} className="block w-full h-full">
-              <Image
-                src={product.images[0]}
-                alt={product.name}
-                fill
-                className="object-cover transition-transform duration-700 group-hover:scale-110"
-                sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-              />
-            </button>
-          )}
+          <Link href={detailHref} className="block h-full w-full">
+            <Image
+              src={product.images[0]}
+              alt={product.name}
+              fill
+              className="object-cover transition-transform duration-700 group-hover:scale-110"
+              sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+            />
+          </Link>
 
           {/* Badge */}
           {product.badge && (
@@ -87,15 +77,19 @@ export default function ProductCard({ product, index = 0 }: Props) {
             >
               <ShoppingBag size={18} />
             </motion.button>
-            <motion.button
+            <motion.div
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.9 }}
-              onClick={() => setQuickView(true)}
-              className="w-10 h-10 bg-white text-charcoal flex items-center justify-center hover:bg-gold hover:text-white transition-colors shadow-lg"
-              aria-label="Quick view"
+              className="shadow-lg"
             >
-              <Eye size={18} />
-            </motion.button>
+              <Link
+                href={detailHref}
+                className="w-10 h-10 bg-white text-charcoal flex items-center justify-center hover:bg-gold hover:text-white transition-colors"
+                aria-label="View product details"
+              >
+                <Eye size={18} />
+              </Link>
+            </motion.div>
             <motion.button
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.9 }}
@@ -120,19 +114,11 @@ export default function ProductCard({ product, index = 0 }: Props) {
           <p className="text-[10px] tracking-[0.16em] uppercase text-gold/80">
             {product.productCode}
           </p>
-          {detailHref ? (
-            <Link href={detailHref}>
-              <h3 className="text-sm font-medium text-charcoal group-hover:text-gold transition-colors line-clamp-1">
-                {product.name}
-              </h3>
-            </Link>
-          ) : (
-            <button type="button" onClick={() => setQuickView(true)} className="text-left">
-              <h3 className="text-sm font-medium text-charcoal group-hover:text-gold transition-colors line-clamp-1">
-                {product.name}
-              </h3>
-            </button>
-          )}
+          <Link href={detailHref}>
+            <h3 className="text-sm font-medium text-charcoal group-hover:text-gold transition-colors line-clamp-1">
+              {product.name}
+            </h3>
+          </Link>
           <div className="flex items-center gap-2">
             <span className="text-sm font-semibold text-charcoal">
               {formatPrice(product.price)}
@@ -235,38 +221,13 @@ export default function ProductCard({ product, index = 0 }: Props) {
                 ))}
               </div>
             </div>
-            {detailHref ? (
-              <Link
-                href={detailHref}
-                className="block text-center bg-charcoal text-white py-3 text-sm tracking-[0.15em] uppercase hover:bg-gold transition-colors"
-                onClick={() => setQuickView(false)}
-              >
-                View Full Details
-              </Link>
-            ) : (
-              <div className="space-y-3">
-                <button
-                  type="button"
-                  className="w-full bg-charcoal text-white py-3 text-sm tracking-[0.15em] uppercase hover:bg-gold transition-colors"
-                  onClick={() => {
-                    addToCart(product, product.sizes[1] || product.sizes[0], product.colors[0].name);
-                    setQuickView(false);
-                  }}
-                >
-                  Add to Cart
-                </button>
-                {product.pdfUrl && (
-                  <a
-                    href={product.pdfUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="block text-center border border-charcoal py-3 text-sm tracking-[0.15em] uppercase text-charcoal hover:border-gold hover:text-gold transition-colors"
-                  >
-                    Open PDF Gallery
-                  </a>
-                )}
-              </div>
-            )}
+            <Link
+              href={detailHref}
+              className="block text-center bg-charcoal text-white py-3 text-sm tracking-[0.15em] uppercase hover:bg-gold transition-colors"
+              onClick={() => setQuickView(false)}
+            >
+              View Full Details
+            </Link>
           </div>
         </div>
       </Modal>

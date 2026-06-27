@@ -19,6 +19,7 @@ interface CatalogItem {
   thumbnail_url?: string;
   image_url?: string;
   pdf_url?: string;
+  gallery_urls?: string[];
   is_active?: boolean;
 }
 
@@ -61,8 +62,18 @@ function itemToProduct(item: CatalogItem): Product {
     ? (["S", "M", "L", "XL", "XXL"] as const).filter((size) => Number(inventory[size]) > 0)
     : ["S", "M", "L", "XL", "XXL"];
 
+  const galleryImages = [
+    item.thumbnail_url || meta.thumbnail_url,
+    item.image_url || meta.image_url,
+    ...(Array.isArray(meta.gallery_urls) ? meta.gallery_urls : []),
+  ]
+    .filter(Boolean)
+    .map((url) => usableImage(url))
+    .filter((url, index, all) => all.indexOf(url) === index);
+
   return {
     id: `live-${item.id}`,
+    liveCatalogId: String(item.id),
     productCode: item.product_code || meta.product_code || `LBN-LIVE-${item.id}`,
     name: item.title || "Laoban Product",
     slug: "",
@@ -70,7 +81,7 @@ function itemToProduct(item: CatalogItem): Product {
     description: cleanDescription(item.description) || "Premium Laoban menswear piece from the live catalog.",
     category: item.product_type?.toLowerCase() || meta.product_type?.toLowerCase() || item.section || "live catalog",
     subcategory: item.fit || meta.fit || item.label || "Laoban",
-    images: [usableImage(item.thumbnail_url || meta.thumbnail_url || item.image_url || meta.image_url)],
+    images: galleryImages.length ? galleryImages : [usableImage(item.thumbnail_url || meta.thumbnail_url || item.image_url || meta.image_url)],
     sizes: sizes.length ? sizes : ["S", "M", "L", "XL", "XXL"],
     colors: Array.isArray(item.colors) && item.colors.length
       ? item.colors
@@ -84,6 +95,7 @@ function itemToProduct(item: CatalogItem): Product {
     deliveryDays: 3,
     isLiveCatalog: true,
     pdfUrl: item.pdf_url || meta.pdf_url,
+    galleryImages,
   };
 }
 
@@ -103,4 +115,21 @@ export async function fetchLiveCatalogProducts(section?: string): Promise<Produc
 
   const data = (await response.json()) as CatalogItem[];
   return data.map(itemToProduct);
+}
+
+export async function fetchLiveCatalogProductById(id: string): Promise<Product | null> {
+  const endpoint = `${SUPABASE_URL}/rest/v1/catalog_items?select=*&id=eq.${encodeURIComponent(id)}&limit=1`;
+  const response = await fetch(endpoint, {
+    headers: {
+      apikey: SUPABASE_ANON_KEY,
+      Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error("Could not load this Laoban product.");
+  }
+
+  const data = (await response.json()) as CatalogItem[];
+  return data[0] ? itemToProduct(data[0]) : null;
 }

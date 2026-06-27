@@ -110,7 +110,8 @@
       thumbnail_storage_path: asset.thumbnailPath || asset.imagePath || "",
       pdf_url: asset.pdfUrl || "",
       pdf_storage_path: asset.pdfPath || "",
-      image_url: imageUrl || ""
+      image_url: imageUrl || "",
+      gallery_urls: Array.isArray(asset.galleryUrls) ? asset.galleryUrls : []
     };
     return `${descriptionWithInventory(description, values)}\n\n[laoban_meta:${encodeURIComponent(JSON.stringify(meta))}]`;
   }
@@ -196,6 +197,7 @@
     const records = [];
     let uploadedThumbnail = null;
     let uploadedPdf = null;
+    const uploadedProducts = [];
     try {
       if (thumbnailFile?.size > 0) {
         uploadedThumbnail = await uploadCatalogFile(thumbnailFile, "thumbnail");
@@ -204,33 +206,27 @@
         uploadedPdf = await uploadCatalogFile(pdfFile, "pdf");
       }
 
-      if (!files.length) {
-        records.push(buildRecord(values, {
-          thumbnailUrl: uploadedThumbnail?.publicUrl,
-          thumbnailPath: uploadedThumbnail?.path,
-          pdfUrl: uploadedPdf?.publicUrl,
-          pdfPath: uploadedPdf?.path
-        }));
-      }
-
       for (let index = 0; index < files.length; index += 1) {
         const file = files[index];
         const uploadedProduct = await uploadCatalogFile(file, "product");
-        const thumbnailUrl = uploadedThumbnail?.publicUrl || uploadedProduct.publicUrl;
-        const thumbnailPath = uploadedThumbnail?.path || uploadedProduct.path;
-        records.push(buildRecord(values, {
-          imageUrl: uploadedProduct.publicUrl,
-          imagePath: uploadedProduct.path,
-          thumbnailUrl,
-          thumbnailPath,
-          pdfUrl: uploadedPdf?.publicUrl,
-          pdfPath: uploadedPdf?.path
-        }, index, files.length));
+        uploadedProducts.push(uploadedProduct);
       }
+
+      const primaryProduct = uploadedProducts[0];
+      records.push(buildRecord(values, {
+        imageUrl: primaryProduct?.publicUrl,
+        imagePath: primaryProduct?.path,
+        thumbnailUrl: uploadedThumbnail?.publicUrl || primaryProduct?.publicUrl,
+        thumbnailPath: uploadedThumbnail?.path || primaryProduct?.path,
+        pdfUrl: uploadedPdf?.publicUrl,
+        pdfPath: uploadedPdf?.path,
+        galleryUrls: uploadedProducts.map((item) => item.publicUrl)
+      }));
     } catch (error) {
       const uploadedPaths = [
         uploadedThumbnail?.path,
         uploadedPdf?.path,
+        ...uploadedProducts.map((item) => item.path),
         ...records.flatMap((record) => [record.storage_path, record.thumbnail_storage_path, record.pdf_storage_path])
       ].filter(Boolean);
       if (uploadedPaths.length) await client.storage.from("catalog").remove(uploadedPaths);
