@@ -2,6 +2,7 @@
 import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { Heart, ShoppingBag, Eye } from "lucide-react";
 import { Product } from "@/data/products";
@@ -16,6 +17,7 @@ interface Props {
 }
 
 export default function ProductCard({ product, index = 0 }: Props) {
+  const router = useRouter();
   const { addItem, removeItem, isInWishlist } = useWishlist();
   const { addItem: addToCart } = useCart();
   const [quickView, setQuickView] = useState(false);
@@ -24,6 +26,22 @@ export default function ProductCard({ product, index = 0 }: Props) {
     ? `/live-product?id=${encodeURIComponent(product.liveCatalogId)}`
     : `/shop/product/${product.slug}`;
 
+  const openProduct = () => {
+    router.push(detailHref);
+  };
+
+  const openProductFromCard = (event: React.MouseEvent<HTMLElement>) => {
+    const target = event.target as HTMLElement;
+    if (target.closest("a, button")) return;
+    openProduct();
+  };
+
+  const openProductFromKeyboard = (event: React.KeyboardEvent<HTMLElement>) => {
+    if (event.key !== "Enter" && event.key !== " ") return;
+    event.preventDefault();
+    openProduct();
+  };
+
   return (
     <>
       <motion.div
@@ -31,7 +49,12 @@ export default function ProductCard({ product, index = 0 }: Props) {
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true }}
         transition={{ delay: index * 0.1, duration: 0.5 }}
-        className="group relative"
+        className="group relative cursor-pointer"
+        role="link"
+        tabIndex={0}
+        onClick={openProductFromCard}
+        onKeyDown={openProductFromKeyboard}
+        aria-label={`Open ${product.name}`}
       >
         {/* Image */}
         <div className="relative aspect-[3/4] overflow-hidden bg-ivory mb-4">
