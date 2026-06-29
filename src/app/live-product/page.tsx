@@ -10,6 +10,80 @@ import { useWishlist } from "@/context/WishlistContext";
 import { fetchLiveCatalogProductById } from "@/lib/supabaseCatalog";
 import { formatPrice } from "@/lib/utils";
 
+type PdfJsLib = {
+  GlobalWorkerOptions: { workerSrc: string };
+  getDocument: (source: { url: string }) => {
+    promise: Promise<{
+      numPages: number;
+      getPage: (pageNumber: number) => Promise<{
+        getViewport: (options: { scale: number }) => { width: number; height: number };
+        render: (options: {
+          canvasContext: CanvasRenderingContext2D;
+          viewport: { width: number; height: number };
+        }) => { promise: Promise<void> };
+      }>;
+    }>;
+  };
+};
+
+declare global {
+  interface Window {
+    pdfjsLib?: PdfJsLib;
+    __laobanPdfJsPromise?: Promise<PdfJsLib>;
+  }
+}
+
+const PDF_JS_SRC = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js";
+const PDF_WORKER_SRC = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+
+function uniqueImages(images: string[]) {
+  return images.filter((image, index, all) => Boolean(image) && all.indexOf(image) === index);
+}
+
+function loadPdfJs() {
+  if (typeof window === "undefined") return Promise.reject(new Error("PDF rendering requires a browser"));
+  if (window.pdfjsLib) return Promise.resolve(window.pdfjsLib);
+  if (window.__laobanPdfJsPromise) return window.__laobanPdfJsPromise;
+
+  window.__laobanPdfJsPromise = new Promise<PdfJsLib>((resolve, reject) => {
+    const script = document.createElement("script");
+    script.src = PDF_JS_SRC;
+    script.async = true;
+    script.onload = () => {
+      if (!window.pdfjsLib) {
+        reject(new Error("PDF renderer did not load"));
+        return;
+      }
+      window.pdfjsLib.GlobalWorkerOptions.workerSrc = PDF_WORKER_SRC;
+      resolve(window.pdfjsLib);
+    };
+    script.onerror = () => reject(new Error("Unable to load PDF renderer"));
+    document.head.appendChild(script);
+  });
+
+  return window.__laobanPdfJsPromise;
+}
+
+function ProductImage({
+  src,
+  alt,
+  priority = false,
+  sizes,
+  className,
+}: {
+  src: string;
+  alt: string;
+  priority?: boolean;
+  sizes?: string;
+  className?: string;
+}) {
+  if (src.startsWith("data:")) {
+    return <img src={src} alt={alt} className={className} />;
+  }
+
+  return <Image src={src} alt={alt} fill priority={priority} sizes={sizes} className={className} />;
+}
+
 export default function LiveProductPage() {
   return (
     <Suspense fallback={<ProductLoading />}>
@@ -48,6 +122,8 @@ function LiveProductContent() {
   const [selectedSize, setSelectedSize] = useState("");
   const [selectedColor, setSelectedColor] = useState("");
   const [quantity, setQuantity] = useState(1);
+  const [pdfPageImages, setPdfPageImages] = useState<string[]>([]);
+  const [pdfStatus, setPdfStatus] = useState<"idle" | "loading" | "ready" | "error">("idle");
 
   useEffect(() => {
     if (!id) {
@@ -79,10 +155,60 @@ function LiveProductContent() {
     };
   }, [id]);
 
-  const galleryImages = useMemo(() => {
+  useEffect(() => {
+    if (!product?.pdfUrl) {
+      setPdfPageImages([]);
+      setPdfStatus("idle");
+      return;
+    }
+
+    let active = true;
+    setPdfPageImages([]);
+    setPdfStatus("loading");
+
+    loadPdfJs()
+      .then(async (pdfjsLib) => {
+        const pdf = await pdfjsLib.getDocument({ url: product.pdfUrl! }).promise;
+        const pageCount = Math.min(pdf.numPages, 10);
+        const renderedPages: string[] = [];
+
+        for (let pageNumber = 1; pageNumber <= pageCount; pageNumber += 1) {
+          const page = await pdf.getPage(pageNumber);
+          const viewport = page.getViewport({ scale: 1.65 });
+          const canvas = document.createElement("canvas");
+          const canvasContext = canvas.getContext("2d");
+
+          if (!canvasContext) continue;
+
+          canvas.width = viewport.width;
+          canvas.height = viewport.height;
+          await page.render({ canvasContext, viewport }).promise;
+          renderedPages.push(canvas.toDataURL("image/jpeg", 0.9));
+        }
+
+        if (!active) return;
+        setPdfPageImages(renderedPages);
+        setPdfStatus(renderedPages.length ? "ready" : "error");
+      })
+      .catch(() => {
+        if (active) setPdfStatus("error");
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [product?.pdfUrl]);
+
+  const productImages = useMemo(() => {
     const images = product?.galleryImages?.length ? product.galleryImages : product?.images || [];
-    return images.filter((image, index, all) => all.indexOf(image) === index);
+    return uniqueImages(images);
   }, [product]);
+
+  const galleryImages = useMemo(() => uniqueImages([...productImages, ...pdfPageImages]), [productImages, pdfPageImages]);
+
+  useEffect(() => {
+    if (selectedImage >= galleryImages.length) setSelectedImage(0);
+  }, [galleryImages.length, selectedImage]);
 
   if (status === "loading") return <ProductLoading />;
 
@@ -131,22 +257,27 @@ function LiveProductContent() {
                   }`}
                   aria-label={`View product image ${index + 1}`}
                 >
-                  <Image src={image} alt="" fill className="object-cover" />
+                  <ProductImage src={image} alt="" className="h-full w-full object-cover" />
                 </button>
               ))}
-              {product.pdfUrl && (
+              {product.pdfUrl && pdfStatus === "loading" && (
+                <div className="flex h-24 w-24 shrink-0 items-center justify-center border border-ivory-dark bg-white p-3 text-center text-[10px] font-semibold uppercase tracking-[0.12em] text-warm-gray md:h-28 md:w-full">
+                  Loading PDF photos
+                </div>
+              )}
+              {product.pdfUrl && pdfStatus === "error" && (
                 <a
-                  href="#pdf-gallery"
+                  href={product.pdfUrl}
                   className="flex h-24 w-24 shrink-0 items-center justify-center border border-ivory-dark bg-white p-3 text-center text-[10px] font-semibold uppercase tracking-[0.12em] text-charcoal hover:border-charcoal md:h-28 md:w-full"
                 >
-                  PDF Gallery
+                  Open PDF
                 </a>
               )}
             </div>
 
             <div className="order-1 md:order-2">
               <div className="relative aspect-[4/5] overflow-hidden bg-ivory shadow-[0_24px_80px_rgba(34,34,34,0.08)]">
-                <Image src={selectedImageUrl} alt={product.name} fill priority className="object-cover" />
+                <ProductImage src={selectedImageUrl} alt={product.name} priority className="h-full w-full object-cover" />
                 {product.badge && (
                   <span className="absolute left-5 top-5 bg-charcoal px-4 py-1.5 text-[10px] font-semibold uppercase tracking-[0.18em] text-white">
                     {product.badge}
@@ -154,7 +285,7 @@ function LiveProductContent() {
                 )}
               </div>
               <p className="mt-3 text-center text-xs uppercase tracking-[0.16em] text-warm-gray">
-                Click thumbnails to view all product photos
+                Thumbnail, extra photos, and PDF pages stay in one product gallery
               </p>
             </div>
           </div>
@@ -246,12 +377,22 @@ function LiveProductContent() {
               </button>
             </div>
 
-            {product.pdfUrl && (
+            {product.pdfUrl && pdfStatus === "loading" && (
+              <p className="mt-4 border border-ivory-dark bg-ivory px-4 py-3 text-xs uppercase tracking-[0.14em] text-warm-gray">
+                Preparing PDF photos inside this gallery…
+              </p>
+            )}
+            {product.pdfUrl && pdfStatus === "ready" && (
+              <p className="mt-4 border border-ivory-dark bg-ivory px-4 py-3 text-xs uppercase tracking-[0.14em] text-warm-gray">
+                PDF gallery pages are available in the photo strip.
+              </p>
+            )}
+            {product.pdfUrl && pdfStatus === "error" && (
               <a
-                href="#pdf-gallery"
+                href={product.pdfUrl}
                 className="mt-4 flex w-full items-center justify-center border border-charcoal py-3 text-sm uppercase tracking-[0.16em] text-charcoal transition hover:border-gold hover:text-gold"
               >
-                Open PDF Gallery
+                Open original PDF
               </a>
             )}
 
@@ -271,17 +412,10 @@ function LiveProductContent() {
         </section>
 
         {product.pdfUrl && (
-          <section id="pdf-gallery" className="mt-12 scroll-mt-28 bg-white p-5 shadow-[0_24px_80px_rgba(34,34,34,0.08)] md:p-8">
-            <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
-              <div>
-                <p className="text-xs uppercase tracking-[0.22em] text-gold">PDF Gallery</p>
-                <h2 className="font-display text-3xl text-charcoal">Product details and size chart</h2>
-              </div>
-              <a href={product.pdfUrl} className="border-b border-charcoal pb-1 text-xs uppercase tracking-[0.16em]">
-                Open PDF in this window
-              </a>
-            </div>
-            <iframe title={`${product.name} PDF gallery`} src={product.pdfUrl} className="h-[72vh] w-full border border-ivory-dark bg-ivory" />
+          <section id="pdf-gallery" className="mt-10 scroll-mt-28 border-t border-ivory-dark pt-5 text-center">
+            <a href={product.pdfUrl} className="text-xs uppercase tracking-[0.16em] text-warm-gray underline underline-offset-4 hover:text-charcoal">
+              Open original PDF file
+            </a>
           </section>
         )}
       </div>

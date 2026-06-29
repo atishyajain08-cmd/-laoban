@@ -165,10 +165,10 @@ export default function ProductCard({ product, index = 0 }: Props) {
           </div>
           {product.pdfUrl && (
             <a
-              href={`${detailHref}#pdf-gallery`}
+              href={detailHref}
               className="inline-flex pt-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-charcoal underline underline-offset-4 transition-colors hover:text-gold"
             >
-              PDF Gallery
+              View Gallery
             </a>
           )}
         </div>
@@ -208,10 +208,10 @@ export default function ProductCard({ product, index = 0 }: Props) {
             </p>
             {product.pdfUrl && (
               <a
-                href={`${detailHref}#pdf-gallery`}
+                href={detailHref}
                 className="mb-6 inline-flex w-fit items-center border-b border-gold pb-1 text-xs uppercase tracking-[0.18em] text-gold hover:text-gold-dark"
               >
-                View PDF Gallery
+                View Full Gallery
               </a>
             )}
             <div className="mb-4">
