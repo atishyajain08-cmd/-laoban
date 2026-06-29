@@ -136,9 +136,7 @@ function LiveProductContent() {
               ))}
               {product.pdfUrl && (
                 <a
-                  href={product.pdfUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
+                  href="#pdf-gallery"
                   className="flex h-24 w-24 shrink-0 items-center justify-center border border-ivory-dark bg-white p-3 text-center text-[10px] font-semibold uppercase tracking-[0.12em] text-charcoal hover:border-charcoal md:h-28 md:w-full"
                 >
                   PDF Gallery
@@ -250,9 +248,7 @@ function LiveProductContent() {
 
             {product.pdfUrl && (
               <a
-                href={product.pdfUrl}
-                target="_blank"
-                rel="noopener noreferrer"
+                href="#pdf-gallery"
                 className="mt-4 flex w-full items-center justify-center border border-charcoal py-3 text-sm uppercase tracking-[0.16em] text-charcoal transition hover:border-gold hover:text-gold"
               >
                 Open PDF Gallery
@@ -275,14 +271,14 @@ function LiveProductContent() {
         </section>
 
         {product.pdfUrl && (
-          <section className="mt-12 bg-white p-5 shadow-[0_24px_80px_rgba(34,34,34,0.08)] md:p-8">
+          <section id="pdf-gallery" className="mt-12 scroll-mt-28 bg-white p-5 shadow-[0_24px_80px_rgba(34,34,34,0.08)] md:p-8">
             <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
               <div>
                 <p className="text-xs uppercase tracking-[0.22em] text-gold">PDF Gallery</p>
                 <h2 className="font-display text-3xl text-charcoal">Product details and size chart</h2>
               </div>
-              <a href={product.pdfUrl} target="_blank" rel="noopener noreferrer" className="border-b border-charcoal pb-1 text-xs uppercase tracking-[0.16em]">
-                Open full PDF
+              <a href={product.pdfUrl} className="border-b border-charcoal pb-1 text-xs uppercase tracking-[0.16em]">
+                Open PDF in this window
               </a>
             </div>
             <iframe title={`${product.name} PDF gallery`} src={product.pdfUrl} className="h-[72vh] w-full border border-ivory-dark bg-ivory" />

@@ -165,9 +165,7 @@ export default function ProductCard({ product, index = 0 }: Props) {
           </div>
           {product.pdfUrl && (
             <a
-              href={product.pdfUrl}
-              target="_blank"
-              rel="noopener noreferrer"
+              href={`${detailHref}#pdf-gallery`}
               className="inline-flex pt-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-charcoal underline underline-offset-4 transition-colors hover:text-gold"
             >
               PDF Gallery
@@ -210,9 +208,7 @@ export default function ProductCard({ product, index = 0 }: Props) {
             </p>
             {product.pdfUrl && (
               <a
-                href={product.pdfUrl}
-                target="_blank"
-                rel="noopener noreferrer"
+                href={`${detailHref}#pdf-gallery`}
                 className="mb-6 inline-flex w-fit items-center border-b border-gold pb-1 text-xs uppercase tracking-[0.18em] text-gold hover:text-gold-dark"
               >
                 View PDF Gallery
