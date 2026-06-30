@@ -11,7 +11,9 @@
   const addForm = document.querySelector("[data-add-form]");
   const addMessage = document.querySelector("[data-add-message]");
   const removeMessage = document.querySelector("[data-remove-message]");
+  const ordersMessage = document.querySelector("[data-orders-message]");
   const itemsRoot = document.querySelector("[data-admin-items]");
+  const ordersRoot = document.querySelector("[data-admin-orders]");
   let sectionSelect = document.querySelector("[data-section-select], [name='section']");
   let arrivalCategoryField = document.querySelector("[data-arrival-category-field]");
   let arrivalCategorySelect = arrivalCategoryField?.querySelector("select");
@@ -111,7 +113,8 @@
       pdf_url: asset.pdfUrl || "",
       pdf_storage_path: asset.pdfPath || "",
       image_url: imageUrl || "",
-      gallery_urls: Array.isArray(asset.galleryUrls) ? asset.galleryUrls : []
+      gallery_urls: Array.isArray(asset.galleryUrls) ? asset.galleryUrls : [],
+      gallery_storage_paths: Array.isArray(asset.galleryPaths) ? asset.galleryPaths : []
     };
     return `${descriptionWithInventory(description, values)}\n\n[laoban_meta:${encodeURIComponent(JSON.stringify(meta))}]`;
   }
@@ -186,6 +189,7 @@
       thumbnail_storage_path: asset.thumbnailPath || asset.imagePath || null,
       pdf_url: asset.pdfUrl || null,
       pdf_storage_path: asset.pdfPath || null,
+      gallery_urls: Array.isArray(asset.galleryUrls) ? asset.galleryUrls : [],
       image_url: imageUrl,
       storage_path: asset.imagePath || null,
       is_active: true,
@@ -220,7 +224,8 @@
         thumbnailPath: uploadedThumbnail?.path || primaryProduct?.path,
         pdfUrl: uploadedPdf?.publicUrl,
         pdfPath: uploadedPdf?.path,
-        galleryUrls: uploadedProducts.map((item) => item.publicUrl)
+        galleryUrls: uploadedProducts.map((item) => item.publicUrl),
+        galleryPaths: uploadedProducts.map((item) => item.path)
       }));
     } catch (error) {
       const uploadedPaths = [
@@ -290,6 +295,37 @@
     window.lucide?.createIcons();
   }
 
+  function formatPrice(value) {
+    return `₹${Number(value || 0).toLocaleString("en-IN")}`;
+  }
+
+  async function loadOrders() {
+    if (!client || !ordersRoot) return;
+    ordersRoot.innerHTML = "<p>Loading orders...</p>";
+    message(ordersMessage, "");
+    const { data, error } = await client.from("orders").select("*").order("created_at", { ascending: false }).limit(100);
+    if (error) {
+      ordersRoot.innerHTML = "";
+      return message(ordersMessage, `${error.message}. If this is the first time, run supabase/schema.sql or repair-catalog-columns.sql in Supabase SQL Editor.`, "error");
+    }
+    ordersRoot.innerHTML = (data || []).map((order) => {
+      const address = order.shipping_address || {};
+      const items = Array.isArray(order.items) ? order.items : [];
+      const itemText = items.map((item) => `${item.name} (${item.size || "-"} / ${item.color || "-"}) × ${item.quantity || 1}`).join(" · ");
+      return `
+        <article class="admin-item admin-order-card">
+          <div>
+            <strong>${escapeHtml(order.order_code)}</strong>
+            <span>${escapeHtml(order.status || "Processing")} · ${escapeHtml(order.payment_method || "COD")} · ${formatPrice(order.total)}</span>
+            <p><code>${escapeHtml(order.customer_name)}</code> · ${escapeHtml(order.customer_phone)} · ${escapeHtml(order.customer_email)}</p>
+            <p>${escapeHtml(address.address || "")}, ${escapeHtml(address.city || "")}, ${escapeHtml(address.state || "")} ${escapeHtml(address.pincode || "")}</p>
+            <small>${escapeHtml(itemText || "No item data")}</small>
+          </div>
+          <small>${new Date(order.created_at).toLocaleString("en-IN")}</small>
+        </article>`;
+    }).join("") || "<p>No orders yet.</p>";
+  }
+
   document.querySelectorAll("[data-admin-mode]").forEach((button) => {
     button.addEventListener("click", () => {
       document.querySelectorAll("[data-admin-mode]").forEach((item) => item.classList.toggle("active", item === button));
@@ -297,8 +333,11 @@
         panel.hidden = panel.dataset.adminPanel !== button.dataset.adminMode;
       });
       if (button.dataset.adminMode === "remove") loadAdminItems();
+      if (button.dataset.adminMode === "orders") loadOrders();
     });
   });
+
+  document.querySelector("[data-refresh-orders]")?.addEventListener("click", loadOrders);
 
   function updateArrivalCategoryField() {
     const isNewArrival = sectionSelect?.value === "new-arrivals";
@@ -397,6 +436,18 @@
     if (!String(values.product_code || "").trim()) {
       submitButton.disabled = false;
       return message(addMessage, "Product code is required.", "error");
+    }
+    if (!String(values.title || "").trim()) {
+      submitButton.disabled = false;
+      return message(addMessage, "Product name is required.", "error");
+    }
+    if (Number(values.price || 0) <= 0) {
+      submitButton.disabled = false;
+      return message(addMessage, "Enter a valid price greater than zero.", "error");
+    }
+    if (!/^#[0-9A-Fa-f]{6}$/.test(String(values.color_hex || ""))) {
+      submitButton.disabled = false;
+      return message(addMessage, "Enter a valid color hex code like #FFFFFF.", "error");
     }
     if (!files.length && !(pdfFile?.size > 0) && !(thumbnailFile?.size > 0)) {
       submitButton.disabled = false;

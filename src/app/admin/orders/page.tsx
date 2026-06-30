@@ -1,14 +1,7 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Download, Eye, FileText, Search } from "lucide-react";
-
-const orders = [
-  { id: "ORD-001", customer: "Arjun Mehta", email: "arjun@email.com", total: 7498, items: 2, status: "Processing", date: "2024-12-20", payment: "Prepaid" },
-  { id: "ORD-002", customer: "Rohan Kapoor", email: "rohan@email.com", total: 4999, items: 1, status: "Shipped", date: "2024-12-19", payment: "COD" },
-  { id: "ORD-003", customer: "Kabir Malhotra", email: "kabir@email.com", total: 11998, items: 3, status: "Delivered", date: "2024-12-18", payment: "Prepaid" },
-  { id: "ORD-004", customer: "Vivaan Nair", email: "vivaan@email.com", total: 2999, items: 1, status: "Cancelled", date: "2024-12-17", payment: "Prepaid" },
-  { id: "ORD-005", customer: "Aditya Gupta", email: "aditya@email.com", total: 8999, items: 2, status: "Processing", date: "2024-12-16", payment: "COD" },
-];
+import { LaobanOrder, readLocalOrders } from "@/lib/laobanOrders";
 
 const statusColors: Record<string, string> = {
   Processing: "bg-yellow-100 text-yellow-700",
@@ -20,23 +13,41 @@ const statusColors: Record<string, string> = {
 export default function AdminOrdersPage() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [orders, setOrders] = useState<LaobanOrder[]>([]);
 
-  const filtered = orders.filter((o) => {
-    const matchesSearch = o.id.toLowerCase().includes(search.toLowerCase()) || o.customer.toLowerCase().includes(search.toLowerCase());
+  useEffect(() => {
+    setOrders(readLocalOrders());
+  }, []);
+
+  const filtered = useMemo(() => orders.filter((o) => {
+    const matchesSearch =
+      o.id.toLowerCase().includes(search.toLowerCase())
+      || o.customer.name.toLowerCase().includes(search.toLowerCase())
+      || o.customer.phone.includes(search);
     const matchesStatus = statusFilter === "all" || o.status === statusFilter;
     return matchesSearch && matchesStatus;
-  });
+  }), [orders, search, statusFilter]);
 
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-semibold text-charcoal">Orders</h1>
-          <p className="text-sm text-gray-500 mt-1">{orders.length} total orders</p>
+          <p className="text-sm text-gray-500 mt-1">{orders.length} storefront order{orders.length !== 1 ? "s" : ""}</p>
         </div>
-        {/* TODO: Implement Excel export with backend API */}
-        <button className="flex items-center gap-2 px-4 py-2 bg-charcoal text-white text-sm rounded-lg hover:bg-gold transition-colors">
-          <Download size={16} /> Export to Excel
+        <button
+          onClick={() => {
+            const blob = new Blob([JSON.stringify(orders, null, 2)], { type: "application/json" });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.href = url;
+            link.download = "laoban-orders.json";
+            link.click();
+            URL.revokeObjectURL(url);
+          }}
+          className="flex items-center gap-2 px-4 py-2 bg-charcoal text-white text-sm rounded-lg hover:bg-gold transition-colors"
+        >
+          <Download size={16} /> Export Orders
         </button>
       </div>
 
@@ -71,17 +82,17 @@ export default function AdminOrdersPage() {
             {filtered.map((order) => (
               <tr key={order.id} className="border-b border-gray-50 hover:bg-gray-50">
                 <td className="p-4 font-medium">{order.id}</td>
-                <td className="p-4"><div className="text-charcoal">{order.customer}</div><div className="text-xs text-gray-400">{order.email}</div></td>
-                <td className="p-4 text-gray-600">{order.items}</td>
-                <td className="p-4 font-medium">₹{order.total.toLocaleString()}</td>
-                <td className="p-4 text-gray-600">{order.payment}</td>
+                <td className="p-4"><div className="text-charcoal">{order.customer.name}</div><div className="text-xs text-gray-400">{order.customer.phone} · {order.customer.email}</div></td>
+                <td className="p-4 text-gray-600">{order.items.reduce((total, item) => total + item.quantity, 0)}</td>
+                <td className="p-4 font-medium">₹{order.total.toLocaleString("en-IN")}</td>
+                <td className="p-4 text-gray-600">{order.customer.paymentMethod}</td>
                 <td className="p-4">
                   <select defaultValue={order.status}
                     className={`px-2 py-1 text-[10px] tracking-wider uppercase font-medium rounded-full border-0 cursor-pointer ${statusColors[order.status]}`}>
                     {Object.keys(statusColors).map((s) => <option key={s} value={s}>{s}</option>)}
                   </select>
                 </td>
-                <td className="p-4 text-gray-500">{new Date(order.date).toLocaleDateString("en-IN", { month: "short", day: "numeric" })}</td>
+                <td className="p-4 text-gray-500">{new Date(order.createdAt).toLocaleDateString("en-IN", { month: "short", day: "numeric" })}</td>
                 <td className="p-4">
                   <div className="flex items-center gap-2">
                     <button className="p-1.5 hover:bg-gray-100 rounded" title="View"><Eye size={14} /></button>
@@ -90,6 +101,13 @@ export default function AdminOrdersPage() {
                 </td>
               </tr>
             ))}
+            {filtered.length === 0 && (
+              <tr>
+                <td colSpan={8} className="p-8 text-center text-sm text-gray-500">
+                  No orders yet. Orders placed from the Laoban cart will appear here and are also submitted to the Supabase orders table when the database schema is installed.
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>

@@ -65,6 +65,7 @@ function itemToProduct(item: CatalogItem): Product {
   const galleryImages = [
     item.thumbnail_url || meta.thumbnail_url,
     item.image_url || meta.image_url,
+    ...(Array.isArray(item.gallery_urls) ? item.gallery_urls : []),
     ...(Array.isArray(meta.gallery_urls) ? meta.gallery_urls : []),
   ]
     .filter(Boolean)

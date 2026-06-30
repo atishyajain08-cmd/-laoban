@@ -8,12 +8,12 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="admin-styles.css?v=product-gallery-5">
+  <link rel="stylesheet" href="admin-styles.css?v=store-upgrade-10">
   <script defer src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
   <script defer src="assets/vendor/supabase.min.js"></script>
   <script defer src="supabase-config.js"></script>
-  <script defer src="catalog.js?v=product-gallery-5"></script>
-  <script defer src="admin.js?v=product-gallery-5"></script>
+  <script defer src="catalog.js?v=store-upgrade-10"></script>
+  <script defer src="admin.js?v=store-upgrade-10"></script>
 </head>
 <body class="admin-page">
   <main class="admin-shell">
@@ -51,6 +51,7 @@
       <div class="admin-mode" role="tablist" aria-label="Catalog actions">
         <button class="active" type="button" data-admin-mode="add"><i data-lucide="plus"></i> Add product</button>
         <button type="button" data-admin-mode="remove"><i data-lucide="trash-2"></i> Remove product</button>
+        <button type="button" data-admin-mode="orders"><i data-lucide="receipt-text"></i> Orders</button>
       </div>
 
       <section class="admin-panel" data-admin-panel="add">
@@ -143,6 +144,18 @@
       <section class="admin-panel" data-admin-panel="remove" hidden>
         <p class="admin-message" data-remove-message aria-live="polite"></p>
         <div class="admin-items" data-admin-items></div>
+      </section>
+
+      <section class="admin-panel" data-admin-panel="orders" hidden>
+        <div class="admin-orders-head">
+          <div>
+            <h2>Storefront orders</h2>
+            <p>Orders placed from the Laoban cart appear here when the Supabase orders table is installed.</p>
+          </div>
+          <button class="button button--light" type="button" data-refresh-orders><i data-lucide="refresh-cw"></i> Refresh</button>
+        </div>
+        <p class="admin-message" data-orders-message aria-live="polite"></p>
+        <div class="admin-items admin-orders" data-admin-orders></div>
       </section>
     </section>
   </main>

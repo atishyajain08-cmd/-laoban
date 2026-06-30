@@ -19,11 +19,11 @@ const footerLinks = {
     { label: "Testimonials", href: "/testimonials" },
   ],
   Support: [
-    { label: "Shipping Policy", href: "/contact" },
-    { label: "Return Policy", href: "/contact" },
-    { label: "Privacy Policy", href: "/contact" },
-    { label: "Terms of Service", href: "/contact" },
-    { label: "FAQ", href: "/contact" },
+    { label: "Shipping Policy", href: "/policies" },
+    { label: "Return Policy", href: "/policies" },
+    { label: "Size Guide", href: "/policies" },
+    { label: "Payment Support", href: "/policies" },
+    { label: "FAQ", href: "/policies" },
   ],
 };
 
@@ -116,7 +116,7 @@ export default function Footer() {
       <div className="border-t border-white/10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 flex flex-col md:flex-row items-center justify-between gap-4">
           <p className="text-white/40 text-xs">
-            © 2025 Laoban. All rights reserved.
+            © 2026 Laoban. All rights reserved.
           </p>
           <div className="flex items-center gap-6 text-white/40 text-xs">
             <span>We accept: Visa, Mastercard, UPI, COD</span>

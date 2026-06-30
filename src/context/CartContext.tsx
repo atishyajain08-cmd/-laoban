@@ -1,5 +1,5 @@
 "use client";
-import { createContext, useContext, useState, useCallback, ReactNode } from "react";
+import { createContext, useContext, useState, useCallback, useEffect, ReactNode } from "react";
 import { Product } from "@/data/products";
 
 export interface CartItem {
@@ -24,6 +24,8 @@ interface CartContextType {
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
+const CART_STORAGE_KEY = "laoban_next_cart";
+const COUPON_STORAGE_KEY = "laoban_next_coupon";
 
 const VALID_COUPONS: Record<string, number> = {
   WELCOME10: 10,
@@ -36,6 +38,37 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([]);
   const [couponCode, setCouponCode] = useState("");
   const [couponDiscount, setCouponDiscount] = useState(0);
+  const [hydrated, setHydrated] = useState(false);
+
+  useEffect(() => {
+    try {
+      const storedItems = JSON.parse(localStorage.getItem(CART_STORAGE_KEY) || "[]") as CartItem[];
+      const storedCoupon = JSON.parse(localStorage.getItem(COUPON_STORAGE_KEY) || "{}") as {
+        code?: string;
+        discount?: number;
+      };
+      if (Array.isArray(storedItems)) setItems(storedItems);
+      if (storedCoupon.code && storedCoupon.discount) {
+        setCouponCode(storedCoupon.code);
+        setCouponDiscount(storedCoupon.discount);
+      }
+    } catch {
+      localStorage.removeItem(CART_STORAGE_KEY);
+      localStorage.removeItem(COUPON_STORAGE_KEY);
+    } finally {
+      setHydrated(true);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!hydrated) return;
+    localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(items));
+  }, [hydrated, items]);
+
+  useEffect(() => {
+    if (!hydrated) return;
+    localStorage.setItem(COUPON_STORAGE_KEY, JSON.stringify({ code: couponCode, discount: couponDiscount }));
+  }, [couponCode, couponDiscount, hydrated]);
 
   const addItem = useCallback((product: Product, size: string, color: string, quantity = 1) => {
     setItems((prev) => {
@@ -82,6 +115,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
     setItems([]);
     setCouponCode("");
     setCouponDiscount(0);
+    if (typeof window !== "undefined") {
+      localStorage.removeItem(CART_STORAGE_KEY);
+      localStorage.removeItem(COUPON_STORAGE_KEY);
+    }
   }, []);
 
   const applyCoupon = useCallback((code: string): boolean => {

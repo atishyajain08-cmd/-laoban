@@ -17,6 +17,7 @@ create table if not exists public.catalog_items (
   thumbnail_storage_path text,
   pdf_url text,
   pdf_storage_path text,
+  gallery_urls jsonb not null default '[]'::jsonb,
   image_url text not null,
   storage_path text,
   is_active boolean not null default true,
@@ -37,7 +38,8 @@ alter table public.catalog_items
   add column if not exists thumbnail_url text,
   add column if not exists thumbnail_storage_path text,
   add column if not exists pdf_url text,
-  add column if not exists pdf_storage_path text;
+  add column if not exists pdf_storage_path text,
+  add column if not exists gallery_urls jsonb not null default '[]'::jsonb;
 
 create unique index if not exists catalog_items_product_code_idx
   on public.catalog_items (product_code)
@@ -112,3 +114,47 @@ create policy "Laoban admins can delete catalog images"
   for delete
   to authenticated
   using (bucket_id = 'catalog' and public.is_laoban_admin());
+
+create table if not exists public.orders (
+  id uuid primary key default gen_random_uuid(),
+  order_code text not null unique,
+  customer_name text not null,
+  customer_email text not null,
+  customer_phone text not null,
+  shipping_address jsonb not null default '{}'::jsonb,
+  payment_method text not null default 'COD',
+  status text not null default 'Processing',
+  subtotal integer not null default 0,
+  shipping integer not null default 0,
+  total integer not null default 0,
+  coupon_code text,
+  items jsonb not null default '[]'::jsonb,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists orders_created_at_idx
+  on public.orders (created_at desc);
+
+alter table public.orders enable row level security;
+
+drop policy if exists "Customers can create Laoban orders" on public.orders;
+create policy "Customers can create Laoban orders"
+  on public.orders
+  for insert
+  to anon, authenticated
+  with check (true);
+
+drop policy if exists "Laoban admins can read orders" on public.orders;
+create policy "Laoban admins can read orders"
+  on public.orders
+  for select
+  to authenticated
+  using (public.is_laoban_admin());
+
+drop policy if exists "Laoban admins can update orders" on public.orders;
+create policy "Laoban admins can update orders"
+  on public.orders
+  for update
+  to authenticated
+  using (public.is_laoban_admin())
+  with check (public.is_laoban_admin());

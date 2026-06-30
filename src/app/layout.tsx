@@ -8,6 +8,7 @@ const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 const playfair = Playfair_Display({ subsets: ["latin"], variable: "--font-playfair" });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://atishyajain08-cmd.github.io/-laoban/"),
   title: {
     default: "Laoban — Premium Men's Fashion",
     template: "%s | Laoban",
@@ -21,7 +22,21 @@ export const metadata: Metadata = {
     "Indian menswear",
     "Laoban",
   ],
-  // TODO: Add Google Analytics, Search Console verification, OG images
+  openGraph: {
+    title: "Laoban — Premium Men's Fashion",
+    description: "Premium menswear essentials for the modern Indian man.",
+    url: "https://atishyajain08-cmd.github.io/-laoban/",
+    siteName: "Laoban",
+    images: ["/assets/brand/laoban-premium-logo.png"],
+    locale: "en_IN",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Laoban — Premium Men's Fashion",
+    description: "Premium menswear essentials for the modern Indian man.",
+    images: ["/assets/brand/laoban-premium-logo.png"],
+  },
 };
 
 export default function RootLayout({

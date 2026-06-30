@@ -2087,6 +2087,32 @@ blockquote cite {
   margin-top: 22px;
 }
 
+.admin-panel[data-admin-panel="orders"] {
+  max-width: 1040px;
+}
+
+.admin-orders-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 18px;
+  align-items: flex-start;
+  margin-bottom: 18px;
+  padding: 18px;
+  background: var(--white);
+  border: 1px solid rgba(34, 34, 34, 0.08);
+}
+
+.admin-orders-head h2 {
+  margin: 0 0 6px;
+  font-size: 24px;
+}
+
+.admin-orders-head p {
+  margin: 0;
+  color: var(--ink-soft);
+  line-height: 1.6;
+}
+
 .admin-items {
   display: grid;
   gap: 10px;
@@ -2124,6 +2150,32 @@ blockquote cite {
   color: var(--gold);
   font-size: 11px;
   font-weight: 700;
+}
+
+.admin-order-card {
+  grid-template-columns: 1fr auto;
+  align-items: start;
+  padding: 18px;
+}
+
+.admin-order-card img {
+  display: none;
+}
+
+.admin-order-card strong {
+  font-size: 16px;
+}
+
+.admin-order-card p {
+  margin: 0;
+  color: var(--ink-soft);
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.admin-order-card code {
+  color: var(--charcoal);
+  font-weight: 800;
 }
 
 .admin-message {

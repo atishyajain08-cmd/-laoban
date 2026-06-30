@@ -3,7 +3,7 @@ import { Suspense, useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { Heart, Minus, Plus, RotateCcw, Shield, ShoppingBag, Truck } from "lucide-react";
+import { Heart, Minus, Plus, RotateCcw, Ruler, Shield, ShoppingBag, Truck, ZoomIn } from "lucide-react";
 import { Product } from "@/data/products";
 import { useCart } from "@/context/CartContext";
 import { useWishlist } from "@/context/WishlistContext";
@@ -124,6 +124,7 @@ function LiveProductContent() {
   const [quantity, setQuantity] = useState(1);
   const [pdfPageImages, setPdfPageImages] = useState<string[]>([]);
   const [pdfStatus, setPdfStatus] = useState<"idle" | "loading" | "ready" | "error">("idle");
+  const [zoomOpen, setZoomOpen] = useState(false);
 
   useEffect(() => {
     if (!id) {
@@ -246,14 +247,14 @@ function LiveProductContent() {
         </nav>
 
         <section className="grid gap-9 lg:grid-cols-[minmax(0,1.06fr)_minmax(420px,0.74fr)] xl:gap-14">
-          <div className="grid gap-4 md:grid-cols-[92px_minmax(0,1fr)]">
-            <div className="order-2 flex gap-3 overflow-x-auto md:order-1 md:flex-col md:overflow-visible">
+          <div className="grid gap-4 md:grid-cols-[104px_minmax(0,1fr)]">
+            <div className="order-2 flex gap-3 overflow-x-auto md:sticky md:top-28 md:order-1 md:max-h-[calc(100vh-8rem)] md:flex-col md:overflow-y-auto md:pr-1">
               {galleryImages.map((image, index) => (
                 <button
                   key={`${image}-${index}`}
                   onClick={() => setSelectedImage(index)}
-                  className={`relative h-24 w-20 shrink-0 overflow-hidden border bg-white md:h-28 md:w-full ${
-                    selectedImage === index ? "border-charcoal" : "border-ivory-dark hover:border-charcoal/50"
+                  className={`relative h-24 w-20 shrink-0 overflow-hidden rounded-xl border bg-white shadow-sm md:h-28 md:w-full ${
+                    selectedImage === index ? "border-charcoal ring-1 ring-charcoal" : "border-ivory-dark hover:border-charcoal/50"
                   }`}
                   aria-label={`View product image ${index + 1}`}
                 >
@@ -276,14 +277,22 @@ function LiveProductContent() {
             </div>
 
             <div className="order-1 md:order-2">
-              <div className="relative aspect-[4/5] overflow-hidden bg-ivory shadow-[0_24px_80px_rgba(34,34,34,0.08)]">
-                <ProductImage src={selectedImageUrl} alt={product.name} priority className="h-full w-full object-cover" />
+              <button
+                type="button"
+                onClick={() => setZoomOpen(true)}
+                className="group relative aspect-[4/5] w-full overflow-hidden bg-ivory text-left shadow-[0_24px_80px_rgba(34,34,34,0.08)]"
+                aria-label="Open product image zoom"
+              >
+                <ProductImage src={selectedImageUrl} alt={product.name} priority className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110" />
                 {product.badge && (
                   <span className="absolute left-5 top-5 bg-charcoal px-4 py-1.5 text-[10px] font-semibold uppercase tracking-[0.18em] text-white">
                     {product.badge}
                   </span>
                 )}
-              </div>
+                <span className="absolute bottom-5 right-5 flex items-center gap-2 bg-white/90 px-4 py-2 text-xs uppercase tracking-[0.14em] text-charcoal shadow-lg">
+                  <ZoomIn size={14} /> Zoom
+                </span>
+              </button>
               <p className="mt-3 text-center text-xs uppercase tracking-[0.16em] text-warm-gray">
                 Thumbnail, extra photos, and PDF pages stay in one product gallery
               </p>
@@ -304,6 +313,19 @@ function LiveProductContent() {
             </div>
 
             <p className="mt-6 text-sm leading-7 text-warm-gray">{product.description}</p>
+            <div className="mt-5 grid grid-cols-2 gap-3 text-xs">
+              {[
+                ["Fit", product.subcategory || "Regular"],
+                ["Fabric", product.category.includes("t-shirt") ? "Cotton rich" : "Premium fabric"],
+                ["Dispatch", `${product.deliveryDays} days`],
+                ["Origin", "Made for India"],
+              ].map(([label, value]) => (
+                <div key={label} className="border border-ivory-dark bg-ivory/50 p-3">
+                  <p className="uppercase tracking-[0.16em] text-warm-gray">{label}</p>
+                  <p className="mt-1 font-medium text-charcoal">{value}</p>
+                </div>
+              ))}
+            </div>
 
             <div className="mt-8">
               <div className="mb-3 flex items-center justify-between">
@@ -355,6 +377,22 @@ function LiveProductContent() {
                   <Plus size={15} />
                 </button>
               </div>
+            </div>
+
+            <div className="mt-7 border border-ivory-dark bg-ivory/40 p-4">
+              <div className="mb-3 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-charcoal">
+                <Ruler size={16} />
+                Size guide
+              </div>
+              <div className="grid grid-cols-5 border border-ivory-dark bg-white text-center text-[11px]">
+                {["Size", "S", "M", "L", "XL"].map((item) => (
+                  <span key={item} className="border-r border-ivory-dark px-2 py-2 last:border-r-0">{item}</span>
+                ))}
+                {["Chest", "38", "40", "42", "44"].map((item) => (
+                  <span key={item} className="border-r border-t border-ivory-dark px-2 py-2 last:border-r-0">{item}</span>
+                ))}
+              </div>
+              <p className="mt-2 text-[11px] leading-5 text-warm-gray">Measurements are in inches. If you are between sizes, choose the larger size for relaxed comfort.</p>
             </div>
 
             <div className="mt-8 flex gap-3">
@@ -419,6 +457,22 @@ function LiveProductContent() {
           </section>
         )}
       </div>
+      {zoomOpen && (
+        <div className="fixed inset-0 z-[80] bg-charcoal/95 p-4 md:p-8" role="dialog" aria-modal="true">
+          <button
+            type="button"
+            onClick={() => setZoomOpen(false)}
+            className="absolute right-5 top-5 z-10 border border-white/20 bg-white px-4 py-2 text-xs uppercase tracking-[0.16em] text-charcoal"
+          >
+            Close
+          </button>
+          <div className="flex h-full items-center justify-center">
+            <div className="relative h-full max-h-[88vh] w-full max-w-5xl bg-white/5">
+              <ProductImage src={selectedImageUrl} alt={product.name} priority className="h-full w-full object-contain" />
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 }

@@ -147,11 +147,11 @@ function ShopContent() {
     <div className="min-h-screen bg-warm-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 md:py-10">
         {/* Toolbar */}
-        <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
+        <div className="sticky top-[4.75rem] z-30 mb-8 flex flex-wrap items-center justify-between gap-4 border border-ivory-dark bg-warm-white/95 p-3 shadow-[0_18px_50px_rgba(26,26,26,0.06)] backdrop-blur md:top-[5.5rem] md:p-4">
           <div className="flex items-center gap-4">
             <button
               onClick={() => setShowFilters(!showFilters)}
-              className="flex items-center gap-2 px-4 py-2 border border-ivory-dark text-sm hover:border-gold transition-colors"
+              className="flex items-center gap-2 px-4 py-2 border border-ivory-dark bg-white text-sm hover:border-charcoal transition-colors"
             >
               <SlidersHorizontal size={16} />
               Filters {activeFilterCount > 0 && <span className="ml-1 text-gold">({activeFilterCount})</span>}
@@ -169,13 +169,13 @@ function ShopContent() {
               placeholder="Search products..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="px-4 py-2 border border-ivory-dark text-sm focus:outline-none focus:border-gold w-48"
+              className="w-44 border border-ivory-dark bg-white px-4 py-2 text-sm focus:border-charcoal focus:outline-none sm:w-56"
             />
             <div className="relative">
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value as SortOption)}
-                className="appearance-none px-4 py-2 pr-8 border border-ivory-dark text-sm focus:outline-none focus:border-gold bg-white cursor-pointer"
+                className="appearance-none border border-ivory-dark bg-white px-4 py-2 pr-8 text-sm cursor-pointer focus:border-charcoal focus:outline-none"
               >
                 <option value="newest">Newest First</option>
                 <option value="price-low">Price: Low to High</option>
@@ -193,7 +193,7 @@ function ShopContent() {
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            className="border border-ivory-dark p-6 mb-8 bg-white"
+            className="border border-ivory-dark p-6 mb-8 bg-white shadow-[0_18px_60px_rgba(26,26,26,0.06)]"
           >
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-sm font-semibold tracking-[0.1em] uppercase">Filters</h3>
