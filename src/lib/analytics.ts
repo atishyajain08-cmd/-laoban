@@ -1,6 +1,9 @@
 import { Product } from "@/data/products";
 
-export const GA_MEASUREMENT_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID || "";
+const LAOBAN_GA_MEASUREMENT_ID = "G-GCP14G8WT3";
+
+export const GA_MEASUREMENT_ID =
+  process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID || LAOBAN_GA_MEASUREMENT_ID;
 
 type GtagCommand = "config" | "event" | "js" | "set";
 
