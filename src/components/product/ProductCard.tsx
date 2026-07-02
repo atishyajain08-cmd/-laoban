@@ -10,6 +10,7 @@ import { useWishlist } from "@/context/WishlistContext";
 import { useCart } from "@/context/CartContext";
 import { formatPrice, getDiscountPercent } from "@/lib/utils";
 import Modal from "@/components/ui/Modal";
+import { trackAddToCart, trackAddToWishlist, trackSelectItem } from "@/lib/analytics";
 
 interface Props {
   product: Product;
@@ -27,7 +28,20 @@ export default function ProductCard({ product, index = 0 }: Props) {
     : `/shop/product/${product.slug}`;
 
   const openProduct = () => {
+    trackSelectItem(product);
     router.push(detailHref);
+  };
+
+  const addProductToCart = () => {
+    const size = product.sizes[1] || product.sizes[0];
+    const color = product.colors[0].name;
+    trackAddToCart(product, 1, size, color);
+    addToCart(product, size, color);
+  };
+
+  const toggleWishlist = () => {
+    if (!wishlisted) trackAddToWishlist(product);
+    wishlisted ? removeItem(product.id) : addItem(product);
   };
 
   const openProductFromCard = (event: React.MouseEvent<HTMLElement>) => {
@@ -58,7 +72,7 @@ export default function ProductCard({ product, index = 0 }: Props) {
       >
         {/* Image */}
         <div className="relative aspect-[3/4] overflow-hidden bg-ivory mb-4">
-          <Link href={detailHref} className="block h-full w-full">
+          <Link href={detailHref} onClick={() => trackSelectItem(product)} className="block h-full w-full">
             <Image
               src={product.images[0]}
               alt={product.name}
@@ -94,7 +108,7 @@ export default function ProductCard({ product, index = 0 }: Props) {
             <motion.button
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.9 }}
-              onClick={() => addToCart(product, product.sizes[1] || product.sizes[0], product.colors[0].name)}
+              onClick={addProductToCart}
               className="w-10 h-10 bg-white text-charcoal flex items-center justify-center hover:bg-gold hover:text-white transition-colors shadow-lg"
               aria-label="Add to cart"
             >
@@ -107,6 +121,7 @@ export default function ProductCard({ product, index = 0 }: Props) {
             >
               <Link
                 href={detailHref}
+                onClick={() => trackSelectItem(product)}
                 className="w-10 h-10 bg-white text-charcoal flex items-center justify-center hover:bg-gold hover:text-white transition-colors"
                 aria-label="View product details"
               >
@@ -116,9 +131,7 @@ export default function ProductCard({ product, index = 0 }: Props) {
             <motion.button
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.9 }}
-              onClick={() =>
-                wishlisted ? removeItem(product.id) : addItem(product)
-              }
+              onClick={toggleWishlist}
               className={`w-10 h-10 flex items-center justify-center transition-colors shadow-lg ${
                 wishlisted ? "bg-gold text-white" : "bg-white text-charcoal hover:bg-gold hover:text-white"
               }`}
@@ -137,7 +150,7 @@ export default function ProductCard({ product, index = 0 }: Props) {
           <p className="text-[10px] tracking-[0.16em] uppercase text-gold/80">
             {product.productCode}
           </p>
-          <Link href={detailHref}>
+          <Link href={detailHref} onClick={() => trackSelectItem(product)}>
             <h3 className="text-sm font-medium text-charcoal group-hover:text-gold transition-colors line-clamp-1">
               {product.name}
             </h3>
@@ -166,6 +179,7 @@ export default function ProductCard({ product, index = 0 }: Props) {
           {product.pdfUrl && (
             <a
               href={detailHref}
+              onClick={() => trackSelectItem(product)}
               className="inline-flex pt-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-charcoal underline underline-offset-4 transition-colors hover:text-gold"
             >
               View Gallery
@@ -209,6 +223,7 @@ export default function ProductCard({ product, index = 0 }: Props) {
             {product.pdfUrl && (
               <a
                 href={detailHref}
+                onClick={() => trackSelectItem(product)}
                 className="mb-6 inline-flex w-fit items-center border-b border-gold pb-1 text-xs uppercase tracking-[0.18em] text-gold hover:text-gold-dark"
               >
                 View Full Gallery
@@ -243,7 +258,10 @@ export default function ProductCard({ product, index = 0 }: Props) {
             <Link
               href={detailHref}
               className="block text-center bg-charcoal text-white py-3 text-sm tracking-[0.15em] uppercase hover:bg-gold transition-colors"
-              onClick={() => setQuickView(false)}
+              onClick={() => {
+                trackSelectItem(product);
+                setQuickView(false);
+              }}
             >
               View Full Details
             </Link>

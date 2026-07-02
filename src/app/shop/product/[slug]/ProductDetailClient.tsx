@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
@@ -11,6 +11,7 @@ import { useWishlist } from "@/context/WishlistContext";
 import { formatPrice, getDiscountPercent } from "@/lib/utils";
 import ProductCard from "@/components/product/ProductCard";
 import AnimatedSection from "@/components/ui/AnimatedSection";
+import { trackAddToCart, trackAddToWishlist, trackViewItem } from "@/lib/analytics";
 
 export default function ProductDetailPage() {
   const { slug } = useParams();
@@ -23,6 +24,10 @@ export default function ProductDetailPage() {
   const [selectedColor, setSelectedColor] = useState("");
   const [quantity, setQuantity] = useState(1);
   const [activeTab, setActiveTab] = useState<"description" | "delivery" | "returns">("description");
+
+  useEffect(() => {
+    if (product) trackViewItem(product);
+  }, [product]);
 
   if (!product) {
     return (
@@ -42,6 +47,7 @@ export default function ProductDetailPage() {
 
   const handleAddToCart = () => {
     if (!selectedSize || !selectedColor) return;
+    trackAddToCart(product, quantity, selectedSize, selectedColor);
     addItem(product, selectedSize, selectedColor, quantity);
   };
 
@@ -219,7 +225,10 @@ export default function ProductDetailPage() {
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                onClick={() => wishlisted ? removeFromWishlist(product.id) : addToWishlist(product)}
+                onClick={() => {
+                  if (!wishlisted) trackAddToWishlist(product);
+                  wishlisted ? removeFromWishlist(product.id) : addToWishlist(product);
+                }}
                 className={`w-14 h-14 border flex items-center justify-center transition-colors ${
                   wishlisted ? "bg-gold border-gold text-white" : "border-ivory-dark hover:border-gold hover:text-gold"
                 }`}

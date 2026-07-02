@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
@@ -8,6 +8,7 @@ import { useCart } from "@/context/CartContext";
 import { formatPrice } from "@/lib/utils";
 import AnimatedSection from "@/components/ui/AnimatedSection";
 import { CheckoutCustomer, createLaobanOrder } from "@/lib/laobanOrders";
+import { trackBeginCheckout, trackPurchase } from "@/lib/analytics";
 
 export default function CartPage() {
   const {
@@ -29,10 +30,17 @@ export default function CartPage() {
   const [orderMessage, setOrderMessage] = useState("");
   const [orderError, setOrderError] = useState("");
   const [placingOrder, setPlacingOrder] = useState(false);
+  const checkoutTracked = useRef(false);
 
   const subtotal = items.reduce((sum, i) => sum + i.product.price * i.quantity, 0);
   const shipping = subtotal >= 2999 ? 0 : 199;
   const grandTotal = totalPrice + shipping;
+
+  useEffect(() => {
+    if (items.length === 0 || checkoutTracked.current) return;
+    checkoutTracked.current = true;
+    trackBeginCheckout(grandTotal, totalItems);
+  }, [grandTotal, items.length, totalItems]);
 
   const handleApplyCoupon = () => {
     setCouponError("");
@@ -75,6 +83,7 @@ export default function CartPage() {
         total: grandTotal,
         couponCode,
       });
+      trackPurchase(order.id, grandTotal, items.map((item) => item.product));
       clearCart();
       setOrderMessage(`Order ${order.id} placed successfully. We will contact you on WhatsApp/phone for confirmation.`);
     } catch {

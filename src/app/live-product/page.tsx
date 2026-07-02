@@ -9,6 +9,7 @@ import { useCart } from "@/context/CartContext";
 import { useWishlist } from "@/context/WishlistContext";
 import { fetchLiveCatalogProductById } from "@/lib/supabaseCatalog";
 import { formatPrice } from "@/lib/utils";
+import { trackAddToCart, trackAddToWishlist, trackViewItem } from "@/lib/analytics";
 
 type PdfJsLib = {
   GlobalWorkerOptions: { workerSrc: string };
@@ -200,6 +201,10 @@ function LiveProductContent() {
     };
   }, [product?.pdfUrl]);
 
+  useEffect(() => {
+    if (product) trackViewItem(product);
+  }, [product]);
+
   const productImages = useMemo(() => {
     const images = product?.galleryImages?.length ? product.galleryImages : product?.images || [];
     return uniqueImages(images);
@@ -232,6 +237,7 @@ function LiveProductContent() {
 
   const addToCart = () => {
     if (!selectedSize || !selectedColor) return;
+    trackAddToCart(product, quantity, selectedSize, selectedColor);
     addItem(product, selectedSize, selectedColor, quantity);
   };
 
@@ -405,7 +411,10 @@ function LiveProductContent() {
                 Add to Cart
               </button>
               <button
-                onClick={() => wishlisted ? removeFromWishlist(product.id) : addToWishlist(product)}
+                onClick={() => {
+                  if (!wishlisted) trackAddToWishlist(product);
+                  wishlisted ? removeFromWishlist(product.id) : addToWishlist(product);
+                }}
                 className={`flex h-[52px] w-[52px] items-center justify-center border transition ${
                   wishlisted ? "border-charcoal bg-charcoal text-white" : "border-ivory-dark hover:border-charcoal"
                 }`}
