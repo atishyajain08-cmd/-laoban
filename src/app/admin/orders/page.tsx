@@ -1,10 +1,11 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
-import { Download, Eye, FileText, Search } from "lucide-react";
-import { LaobanOrder, readLocalOrders } from "@/lib/laobanOrders";
+import { Download, Eye, FileText, RefreshCw, Search } from "lucide-react";
+import { fetchLaobanOrders, LaobanOrder, readLocalOrders } from "@/lib/laobanOrders";
 
 const statusColors: Record<string, string> = {
   Processing: "bg-yellow-100 text-yellow-700",
+  Confirmed: "bg-emerald-100 text-emerald-700",
   Shipped: "bg-blue-100 text-blue-700",
   Delivered: "bg-green-100 text-green-700",
   Cancelled: "bg-red-100 text-red-700",
@@ -14,9 +15,41 @@ export default function AdminOrdersPage() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [orders, setOrders] = useState<LaobanOrder[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [source, setSource] = useState<"supabase" | "local">("local");
+  const [message, setMessage] = useState("");
 
   useEffect(() => {
-    setOrders(readLocalOrders());
+    let active = true;
+
+    const load = async (silent = false) => {
+      if (!silent) setLoading(true);
+      try {
+        const remoteOrders = await fetchLaobanOrders();
+        if (!active) return;
+        setOrders(remoteOrders);
+        setSource("supabase");
+        setMessage("Live Supabase orders connected. This page refreshes automatically.");
+      } catch (error) {
+        if (!active) return;
+        setOrders(readLocalOrders());
+        setSource("local");
+        setMessage(
+          `Could not read Supabase orders from this admin page. ${
+            error instanceof Error ? error.message : ""
+          } Use backend.html if Supabase admin login is required.`
+        );
+      } finally {
+        if (active) setLoading(false);
+      }
+    };
+
+    load();
+    const interval = window.setInterval(() => load(true), 10000);
+    return () => {
+      active = false;
+      window.clearInterval(interval);
+    };
   }, []);
 
   const filtered = useMemo(() => orders.filter((o) => {
@@ -33,23 +66,54 @@ export default function AdminOrdersPage() {
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-semibold text-charcoal">Orders</h1>
-          <p className="text-sm text-gray-500 mt-1">{orders.length} storefront order{orders.length !== 1 ? "s" : ""}</p>
+          <p className="text-sm text-gray-500 mt-1">
+            {orders.length} storefront order{orders.length !== 1 ? "s" : ""} ·{" "}
+            {source === "supabase" ? "Live Supabase backend" : "Local fallback"}
+          </p>
         </div>
-        <button
-          onClick={() => {
-            const blob = new Blob([JSON.stringify(orders, null, 2)], { type: "application/json" });
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement("a");
-            link.href = url;
-            link.download = "laoban-orders.json";
-            link.click();
-            URL.revokeObjectURL(url);
-          }}
-          className="flex items-center gap-2 px-4 py-2 bg-charcoal text-white text-sm rounded-lg hover:bg-gold transition-colors"
-        >
-          <Download size={16} /> Export Orders
-        </button>
+        <div className="flex flex-wrap gap-2">
+          <button
+            onClick={async () => {
+              setLoading(true);
+              try {
+                const remoteOrders = await fetchLaobanOrders();
+                setOrders(remoteOrders);
+                setSource("supabase");
+                setMessage("Orders refreshed from Supabase.");
+              } catch (error) {
+                setMessage(error instanceof Error ? error.message : "Could not refresh orders.");
+              } finally {
+                setLoading(false);
+              }
+            }}
+            className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 text-sm rounded-lg hover:border-gold transition-colors"
+          >
+            <RefreshCw size={16} className={loading ? "animate-spin" : ""} /> Refresh
+          </button>
+          <button
+            onClick={() => {
+              const blob = new Blob([JSON.stringify(orders, null, 2)], { type: "application/json" });
+              const url = URL.createObjectURL(blob);
+              const link = document.createElement("a");
+              link.href = url;
+              link.download = "laoban-orders.json";
+              link.click();
+              URL.revokeObjectURL(url);
+            }}
+            className="flex items-center gap-2 px-4 py-2 bg-charcoal text-white text-sm rounded-lg hover:bg-gold transition-colors"
+          >
+            <Download size={16} /> Export Orders
+          </button>
+        </div>
       </div>
+
+      {message && (
+        <div className={`rounded-lg border px-4 py-3 text-sm ${
+          source === "supabase" ? "border-green-200 bg-green-50 text-green-700" : "border-yellow-200 bg-yellow-50 text-yellow-800"
+        }`}>
+          {message}
+        </div>
+      )}
 
       {/* Filters */}
       <div className="flex flex-wrap gap-3">
@@ -73,7 +137,7 @@ export default function AdminOrdersPage() {
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-gray-100 bg-gray-50">
-              {["Order ID", "Customer", "Items", "Total", "Payment", "Status", "Date", "Actions"].map((h) => (
+              {["Order ID", "Customer", "Delivery Address", "Items", "Total", "Payment", "Status", "Date", "Actions"].map((h) => (
                 <th key={h} className="text-left p-4 text-xs font-medium text-gray-500 uppercase tracking-wider">{h}</th>
               ))}
             </tr>
@@ -83,6 +147,12 @@ export default function AdminOrdersPage() {
               <tr key={order.id} className="border-b border-gray-50 hover:bg-gray-50">
                 <td className="p-4 font-medium">{order.id}</td>
                 <td className="p-4"><div className="text-charcoal">{order.customer.name}</div><div className="text-xs text-gray-400">{order.customer.phone} · {order.customer.email}</div></td>
+                <td className="p-4 text-xs leading-5 text-gray-600 min-w-[220px]">
+                  <div>{order.customer.houseNumber}</div>
+                  <div>{order.customer.street}</div>
+                  {order.customer.landmark && <div>Landmark: {order.customer.landmark}</div>}
+                  <div>{order.customer.city}, {order.customer.state} - {order.customer.pincode}</div>
+                </td>
                 <td className="p-4 text-gray-600">{order.items.reduce((total, item) => total + item.quantity, 0)}</td>
                 <td className="p-4 font-medium">₹{order.total.toLocaleString("en-IN")}</td>
                 <td className="p-4 text-gray-600">{order.customer.paymentMethod}</td>
@@ -103,8 +173,8 @@ export default function AdminOrdersPage() {
             ))}
             {filtered.length === 0 && (
               <tr>
-                <td colSpan={8} className="p-8 text-center text-sm text-gray-500">
-                  No orders yet. Orders placed from the Laoban cart will appear here and are also submitted to the Supabase orders table when the database schema is installed.
+                <td colSpan={9} className="p-8 text-center text-sm text-gray-500">
+                  {loading ? "Loading orders..." : "No orders yet. Orders placed from checkout will appear here after Supabase accepts them."}
                 </td>
               </tr>
             )}

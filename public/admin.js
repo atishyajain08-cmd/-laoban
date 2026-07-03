@@ -17,6 +17,7 @@
   let sectionSelect = document.querySelector("[data-section-select], [name='section']");
   let arrivalCategoryField = document.querySelector("[data-arrival-category-field]");
   let arrivalCategorySelect = arrivalCategoryField?.querySelector("select");
+  let ordersInterval = null;
 
   function ensureUploadFields() {
     if (!addForm || !sectionSelect) return;
@@ -312,18 +313,27 @@
       const address = order.shipping_address || {};
       const items = Array.isArray(order.items) ? order.items : [];
       const itemText = items.map((item) => `${item.name} (${item.size || "-"} / ${item.color || "-"}) × ${item.quantity || 1}`).join(" · ");
+      const deliveryLines = [
+        address.house_number || address.houseNumber || "",
+        address.street || address.address || "",
+        address.landmark ? `Landmark: ${address.landmark}` : "",
+        [address.city, address.state].filter(Boolean).join(", "),
+        address.pincode ? `PIN: ${address.pincode}` : "",
+        address.country || "India",
+      ].filter(Boolean);
       return `
         <article class="admin-item admin-order-card">
           <div>
             <strong>${escapeHtml(order.order_code)}</strong>
             <span>${escapeHtml(order.status || "Processing")} · ${escapeHtml(order.payment_method || "COD")} · ${formatPrice(order.total)}</span>
             <p><code>${escapeHtml(order.customer_name)}</code> · ${escapeHtml(order.customer_phone)} · ${escapeHtml(order.customer_email)}</p>
-            <p>${escapeHtml(address.address || "")}, ${escapeHtml(address.city || "")}, ${escapeHtml(address.state || "")} ${escapeHtml(address.pincode || "")}</p>
+            <p>${deliveryLines.map(escapeHtml).join("<br>")}</p>
             <small>${escapeHtml(itemText || "No item data")}</small>
           </div>
           <small>${new Date(order.created_at).toLocaleString("en-IN")}</small>
         </article>`;
     }).join("") || "<p>No orders yet.</p>";
+    message(ordersMessage, `Showing ${(data || []).length} live Supabase order${(data || []).length === 1 ? "" : "s"}. Auto-refresh is on.`, "success");
   }
 
   document.querySelectorAll("[data-admin-mode]").forEach((button) => {
@@ -333,7 +343,13 @@
         panel.hidden = panel.dataset.adminPanel !== button.dataset.adminMode;
       });
       if (button.dataset.adminMode === "remove") loadAdminItems();
-      if (button.dataset.adminMode === "orders") loadOrders();
+      if (button.dataset.adminMode === "orders") {
+        loadOrders();
+        if (!ordersInterval) ordersInterval = setInterval(loadOrders, 10000);
+      } else if (ordersInterval) {
+        clearInterval(ordersInterval);
+        ordersInterval = null;
+      }
     });
   });
 

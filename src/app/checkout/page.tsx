@@ -17,7 +17,9 @@ const FIELDS: { key: keyof CheckoutCustomer; label: string; type: string; span?:
   { key: "name", label: "Full name", type: "text", span: true, placeholder: "e.g. Arjun Mehta" },
   { key: "email", label: "Email address", type: "email", placeholder: "you@example.com" },
   { key: "phone", label: "Mobile number", type: "tel", placeholder: "10-digit mobile" },
-  { key: "address", label: "House / street address", type: "text", span: true, placeholder: "Flat, house no., street" },
+  { key: "houseNumber", label: "House / flat number", type: "text", placeholder: "Flat 12B / House 44" },
+  { key: "street", label: "Street / locality", type: "text", placeholder: "Street, area, colony" },
+  { key: "landmark", label: "Landmark optional", type: "text", span: true, placeholder: "Near metro station, gate, shop, etc." },
   { key: "city", label: "City", type: "text", placeholder: "City" },
   { key: "state", label: "State", type: "text", placeholder: "State" },
   { key: "pincode", label: "PIN code", type: "text", placeholder: "6-digit PIN" },
@@ -30,7 +32,7 @@ export default function CheckoutPage() {
     couponCode, couponDiscount, removeCoupon, clearCart,
   } = useCart();
   const [form, setForm] = useState<CheckoutCustomer>({
-    name: "", email: "", phone: "", address: "", city: "", state: "", pincode: "",
+    name: "", email: "", phone: "", houseNumber: "", street: "", landmark: "", city: "", state: "", pincode: "",
     paymentMethod: "COD",
   });
   const [error, setError] = useState("");
@@ -53,7 +55,7 @@ export default function CheckoutPage() {
 
   const placeOrder = async () => {
     setError("");
-    const missing = FIELDS.find((f) => !String(form[f.key]).trim());
+    const missing = FIELDS.find((f) => f.key !== "landmark" && !String(form[f.key]).trim());
     if (missing) {
       setError(`Please fill in your ${missing.label.toLowerCase()}.`);
       return;
@@ -96,8 +98,13 @@ export default function CheckoutPage() {
       setPlaced(true);
       clearCart();
       router.push("/order-success");
-    } catch {
-      setError("Could not place the order. Please try again or contact Laoban on WhatsApp.");
+    } catch (error) {
+      const detail = error instanceof Error ? error.message : "";
+      setError(
+        detail.includes("orders")
+          ? "Order could not be saved to the Laoban backend. Please contact Laoban on WhatsApp or try again."
+          : "Could not place the order. Please try again or contact Laoban on WhatsApp."
+      );
       setPlacing(false);
     }
   };
