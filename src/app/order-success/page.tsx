@@ -61,7 +61,7 @@ export default function OrderSuccessPage() {
           </h1>
           <p className="mx-auto mt-4 max-w-lg text-sm leading-6 text-warm-gray">
             Your order has been placed successfully. Thank you for choosing Laoban —
-            your pieces are being prepared with care.
+            your order is being prepared with utmost care.
           </p>
         </motion.div>
 
