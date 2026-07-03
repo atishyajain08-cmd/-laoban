@@ -75,6 +75,35 @@ function deliveryAddress(customer: CheckoutCustomer) {
   };
 }
 
+function orderItems(items: CartItem[]) {
+  return items.map((item) => ({
+    product_id: item.product.id,
+    live_catalog_id: item.product.liveCatalogId || null,
+    product_code: item.product.productCode,
+    name: item.product.name,
+    size: item.size,
+    color: item.color,
+    quantity: item.quantity,
+    price: item.product.price,
+    image: item.product.images[0],
+  }));
+}
+
+async function insertOrderPayload(payload: Record<string, unknown>) {
+  const response = await fetch(`${SUPABASE_URL}/rest/v1/orders`, {
+    method: "POST",
+    headers: {
+      apikey: SUPABASE_ANON_KEY,
+      Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+      "Content-Type": "application/json",
+      Prefer: "return=representation",
+    },
+    body: JSON.stringify(payload),
+  });
+  const responseText = await response.text();
+  return { ok: response.ok, responseText };
+}
+
 export async function createLaobanOrder({
   customer,
   items,
@@ -103,42 +132,52 @@ export async function createLaobanOrder({
   };
 
   try {
-    const response = await fetch(`${SUPABASE_URL}/rest/v1/orders`, {
-      method: "POST",
-      headers: {
-        apikey: SUPABASE_ANON_KEY,
-        Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
-        "Content-Type": "application/json",
-        Prefer: "return=representation",
-      },
-      body: JSON.stringify({
+    const delivery = deliveryAddress(customer);
+    const lineItems = orderItems(items);
+    const richPayload = {
+      order_code: order.id,
+      customer_name: customer.name,
+      customer_email: customer.email,
+      customer_phone: customer.phone,
+      shipping_address: delivery,
+      payment_method: customer.paymentMethod,
+      status: order.status,
+      subtotal,
+      shipping,
+      total,
+      coupon_code: couponCode || null,
+      items: lineItems,
+    };
+    const legacyPayload = {
+      full_name: customer.name,
+      email: customer.email,
+      phone: customer.phone,
+      address: JSON.stringify({
         order_code: order.id,
-        customer_name: customer.name,
-        customer_email: customer.email,
-        customer_phone: customer.phone,
-        shipping_address: deliveryAddress(customer),
-        payment_method: customer.paymentMethod,
-        status: order.status,
-        subtotal,
-        shipping,
-        total,
+        customer,
+        shipping_address: delivery,
         coupon_code: couponCode || null,
-        items: items.map((item) => ({
-          product_id: item.product.id,
-          live_catalog_id: item.product.liveCatalogId || null,
-          product_code: item.product.productCode,
-          name: item.product.name,
-          size: item.size,
-          color: item.color,
-          quantity: item.quantity,
-          price: item.product.price,
-          image: item.product.images[0],
-        })),
+        items: lineItems,
       }),
-    });
-    if (!response.ok) {
-      const detail = await response.text();
-      throw new Error(detail || "Supabase order insert failed");
+      payment_method: customer.paymentMethod,
+      status: order.status,
+      subtotal,
+      shipping,
+      total,
+    };
+
+    const richInsert = await insertOrderPayload(richPayload);
+    const richSchemaMissing = /column orders\.(order_code|customer_name|customer_email|customer_phone|shipping_address|coupon_code|items) does not exist/i.test(
+      richInsert.responseText
+    );
+    const finalInsert = richInsert.ok
+      ? richInsert
+      : richSchemaMissing
+        ? await insertOrderPayload(legacyPayload)
+        : richInsert;
+
+    if (!finalInsert.ok) {
+      throw new Error(finalInsert.responseText || "Supabase order insert failed");
     }
     saveLocalOrder(order);
   } catch (error) {
@@ -149,10 +188,15 @@ export async function createLaobanOrder({
 }
 
 interface SupabaseOrderRow {
-  order_code: string;
-  customer_name: string;
-  customer_email: string;
-  customer_phone: string;
+  id?: string;
+  order_code?: string;
+  customer_name?: string;
+  customer_email?: string;
+  customer_phone?: string;
+  full_name?: string;
+  email?: string;
+  phone?: string;
+  address?: string | Record<string, unknown>;
   shipping_address?: Record<string, string>;
   payment_method?: "COD" | "UPI";
   status?: LaobanOrder["status"];
@@ -164,14 +208,27 @@ interface SupabaseOrderRow {
   created_at?: string;
 }
 
+function parseLegacyAddress(value: SupabaseOrderRow["address"]) {
+  if (!value) return {};
+  if (typeof value === "object") return value as Record<string, unknown>;
+  try {
+    return JSON.parse(value) as Record<string, unknown>;
+  } catch {
+    return { shipping_address: { address: value } };
+  }
+}
+
 function rowToOrder(row: SupabaseOrderRow): LaobanOrder {
-  const address = row.shipping_address || {};
+  const legacy = parseLegacyAddress(row.address);
+  const legacyCustomer = (legacy.customer || {}) as Partial<CheckoutCustomer>;
+  const address = row.shipping_address || (legacy.shipping_address as Record<string, string> | undefined) || {};
+  const legacyItems = Array.isArray(legacy.items) ? legacy.items : [];
   return {
-    id: row.order_code,
+    id: row.order_code || String(legacy.order_code || row.id || ""),
     customer: {
-      name: row.customer_name,
-      email: row.customer_email,
-      phone: row.customer_phone,
+      name: row.customer_name || row.full_name || legacyCustomer.name || "",
+      email: row.customer_email || row.email || legacyCustomer.email || "",
+      phone: row.customer_phone || row.phone || legacyCustomer.phone || "",
       houseNumber: address.house_number || address.houseNumber || "",
       street: address.street || address.address || "",
       landmark: address.landmark || "",
@@ -180,7 +237,7 @@ function rowToOrder(row: SupabaseOrderRow): LaobanOrder {
       pincode: address.pincode || "",
       paymentMethod: row.payment_method || "COD",
     },
-    items: Array.isArray(row.items) ? row.items : [],
+    items: Array.isArray(row.items) ? row.items : (legacyItems as CartItem[]),
     subtotal: Number(row.subtotal || 0),
     shipping: Number(row.shipping || 0),
     total: Number(row.total || 0),

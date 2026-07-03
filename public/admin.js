@@ -310,8 +310,19 @@
       return message(ordersMessage, `${error.message}. If this is the first time, run supabase/schema.sql or repair-catalog-columns.sql in Supabase SQL Editor.`, "error");
     }
     ordersRoot.innerHTML = (data || []).map((order) => {
-      const address = order.shipping_address || {};
-      const items = Array.isArray(order.items) ? order.items : [];
+      let legacy = {};
+      if (order.address && typeof order.address === "string") {
+        try {
+          legacy = JSON.parse(order.address);
+        } catch {
+          legacy = { shipping_address: { address: order.address } };
+        }
+      } else if (order.address && typeof order.address === "object") {
+        legacy = order.address;
+      }
+      const address = order.shipping_address || legacy.shipping_address || {};
+      const items = Array.isArray(order.items) ? order.items : Array.isArray(legacy.items) ? legacy.items : [];
+      const customer = legacy.customer || {};
       const itemText = items.map((item) => `${item.name} (${item.size || "-"} / ${item.color || "-"}) × ${item.quantity || 1}`).join(" · ");
       const deliveryLines = [
         address.house_number || address.houseNumber || "",
@@ -324,9 +335,9 @@
       return `
         <article class="admin-item admin-order-card">
           <div>
-            <strong>${escapeHtml(order.order_code)}</strong>
+            <strong>${escapeHtml(order.order_code || legacy.order_code || order.id)}</strong>
             <span>${escapeHtml(order.status || "Processing")} · ${escapeHtml(order.payment_method || "COD")} · ${formatPrice(order.total)}</span>
-            <p><code>${escapeHtml(order.customer_name)}</code> · ${escapeHtml(order.customer_phone)} · ${escapeHtml(order.customer_email)}</p>
+            <p><code>${escapeHtml(order.customer_name || order.full_name || customer.name)}</code> · ${escapeHtml(order.customer_phone || order.phone || customer.phone)} · ${escapeHtml(order.customer_email || order.email || customer.email)}</p>
             <p>${deliveryLines.map(escapeHtml).join("<br>")}</p>
             <small>${escapeHtml(itemText || "No item data")}</small>
           </div>
