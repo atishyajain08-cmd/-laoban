@@ -3,8 +3,14 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, UserCircle2, LogOut, ShoppingBag } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
+
+function nextPath(): string {
+  if (typeof window === "undefined") return "/dashboard";
+  const next = new URLSearchParams(window.location.search).get("next");
+  return next && next.startsWith("/") ? next : "/dashboard";
+}
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -12,7 +18,7 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const { login } = useAuth();
+  const { user, isAuthenticated, login, logout } = useAuth();
   const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -20,14 +26,61 @@ export default function LoginPage() {
     setError("");
     setLoading(true);
     try {
-      await login(email, password);
-      router.push("/dashboard");
+      const ok = await login(email, password);
+      if (!ok) {
+        setError("Invalid email or password. New to Laoban? Create an account below.");
+        return;
+      }
+      router.push(nextPath());
     } catch {
-      setError("Invalid email or password");
+      setError("Something went wrong. Please try again.");
     } finally {
       setLoading(false);
     }
   };
+
+  // Already signed in → offer account + logout instead of the form.
+  if (isAuthenticated && user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-ivory px-4 py-16">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="w-full max-w-md bg-white p-8 md:p-10 border border-ivory-dark text-center"
+        >
+          <Link href="/" className="font-display text-2xl tracking-[0.15em] text-charcoal">
+            LAOBAN
+          </Link>
+          <UserCircle2 size={56} className="mx-auto mt-6 text-gold" strokeWidth={1.2} />
+          <h2 className="font-display text-xl mt-4 text-charcoal">You&apos;re Signed In</h2>
+          <p className="text-warm-gray text-sm mt-2">
+            {user.name} · {user.email}
+          </p>
+
+          <div className="mt-8 space-y-3">
+            <Link
+              href="/dashboard"
+              className="block w-full py-3 bg-charcoal text-white text-sm tracking-[0.15em] uppercase hover:bg-gold transition-colors"
+            >
+              My Account
+            </Link>
+            <Link
+              href="/cart"
+              className="flex w-full items-center justify-center gap-2 py-3 border border-charcoal text-charcoal text-sm tracking-[0.15em] uppercase hover:bg-charcoal hover:text-white transition-colors"
+            >
+              <ShoppingBag size={15} /> View Bag
+            </Link>
+            <button
+              onClick={logout}
+              className="flex w-full items-center justify-center gap-2 py-3 border border-ivory-dark text-warm-gray text-sm tracking-[0.15em] uppercase hover:border-red-300 hover:text-red-500 transition-colors"
+            >
+              <LogOut size={15} /> Log Out
+            </button>
+          </div>
+        </motion.div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-ivory px-4 py-16">
@@ -102,7 +155,17 @@ export default function LoginPage() {
 
         <p className="text-center text-sm text-warm-gray mt-6">
           Don&apos;t have an account?{" "}
-          <Link href="/auth/signup" className="text-gold hover:underline font-medium">
+          <Link
+            href="/auth/signup"
+            onClick={(e) => {
+              // carry the ?next= destination over to signup
+              if (typeof window !== "undefined" && window.location.search) {
+                e.preventDefault();
+                router.push(`/auth/signup${window.location.search}`);
+              }
+            }}
+            className="text-gold hover:underline font-medium"
+          >
             Create Account
           </Link>
         </p>

@@ -1,5 +1,5 @@
 "use client";
-import { createContext, useContext, useState, useCallback, ReactNode } from "react";
+import { createContext, useContext, useState, useCallback, useEffect, ReactNode } from "react";
 
 interface User {
   id: string;
@@ -8,6 +8,10 @@ interface User {
   avatar?: string;
   phone?: string;
   bio?: string;
+}
+
+interface StoredAccount extends User {
+  password: string;
 }
 
 interface AuthContextType {
@@ -21,34 +25,98 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+// Client-side account store for the static site. Accounts live in the
+// shopper's own browser; swap for Supabase auth when going fully live.
+const ACCOUNTS_KEY = "laoban_accounts";
+const SESSION_KEY = "laoban_session";
+
+function readAccounts(): StoredAccount[] {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(ACCOUNTS_KEY) || "[]");
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+function writeAccounts(accounts: StoredAccount[]) {
+  localStorage.setItem(ACCOUNTS_KEY, JSON.stringify(accounts));
+}
+
+function toUser(account: StoredAccount): User {
+  const { password: _password, ...user } = account;
+  return user;
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
 
-  // TODO: Replace with real API calls
-  const login = useCallback(async (email: string, _password: string): Promise<boolean> => {
-    await new Promise((r) => setTimeout(r, 800));
-    setUser({
-      id: "1",
-      name: "Arjun Mehta",
-      email,
-      avatar: "/-laoban/assets/campaign/laoban-social-3.png",
-    });
+  // Restore the session so a signed-in customer stays signed in across visits.
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(SESSION_KEY);
+      if (raw) setUser(JSON.parse(raw) as User);
+    } catch {
+      localStorage.removeItem(SESSION_KEY);
+    }
+  }, []);
+
+  const persistSession = (next: User | null) => {
+    if (next) localStorage.setItem(SESSION_KEY, JSON.stringify(next));
+    else localStorage.removeItem(SESSION_KEY);
+  };
+
+  const login = useCallback(async (email: string, password: string): Promise<boolean> => {
+    await new Promise((r) => setTimeout(r, 400));
+    const account = readAccounts().find(
+      (a) => a.email.toLowerCase() === email.trim().toLowerCase()
+    );
+    if (!account || account.password !== password) return false;
+    const next = toUser(account);
+    setUser(next);
+    persistSession(next);
     return true;
   }, []);
 
   const signup = useCallback(
-    async (name: string, email: string, _password: string): Promise<boolean> => {
-      await new Promise((r) => setTimeout(r, 800));
-      setUser({ id: "1", name, email });
+    async (name: string, email: string, password: string): Promise<boolean> => {
+      await new Promise((r) => setTimeout(r, 400));
+      const accounts = readAccounts();
+      const exists = accounts.some(
+        (a) => a.email.toLowerCase() === email.trim().toLowerCase()
+      );
+      if (exists) return false;
+      const account: StoredAccount = {
+        id: `LBN-${Date.now().toString(36).toUpperCase()}`,
+        name: name.trim(),
+        email: email.trim(),
+        password,
+      };
+      writeAccounts([...accounts, account]);
+      const next = toUser(account);
+      setUser(next);
+      persistSession(next);
       return true;
     },
     []
   );
 
-  const logout = useCallback(() => setUser(null), []);
+  const logout = useCallback(() => {
+    setUser(null);
+    persistSession(null);
+  }, []);
 
   const updateProfile = useCallback((data: Partial<User>) => {
-    setUser((prev) => (prev ? { ...prev, ...data } : null));
+    setUser((prev) => {
+      if (!prev) return null;
+      const next = { ...prev, ...data };
+      persistSession(next);
+      const accounts = readAccounts().map((a) =>
+        a.id === next.id ? { ...a, ...data } : a
+      );
+      writeAccounts(accounts);
+      return next;
+    });
   }, []);
 
   return (

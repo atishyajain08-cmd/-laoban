@@ -30,8 +30,13 @@ export default function SignupPage() {
     }
     setLoading(true);
     try {
-      await signup(name, email, password);
-      router.push("/auth/verify-email");
+      const ok = await signup(name, email, password);
+      if (!ok) {
+        setError("An account with this email already exists. Please sign in instead.");
+        return;
+      }
+      const next = new URLSearchParams(window.location.search).get("next");
+      router.push(next && next.startsWith("/") ? next : "/dashboard");
     } catch {
       setError("Failed to create account");
     } finally {

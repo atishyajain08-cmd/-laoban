@@ -3,8 +3,9 @@ import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ShoppingBag, Banknote, Smartphone, ShieldCheck, Truck, PackageCheck, Lock, Tag, X } from "lucide-react";
+import { ShoppingBag, Banknote, Smartphone, ShieldCheck, Truck, PackageCheck, Lock, Tag, X, LogIn, UserPlus } from "lucide-react";
 import { useCart } from "@/context/CartContext";
+import { useAuth } from "@/context/AuthContext";
 import { formatPrice } from "@/lib/utils";
 import AnimatedSection from "@/components/ui/AnimatedSection";
 import { CheckoutCustomer, createLaobanOrder } from "@/lib/laobanOrders";
@@ -27,6 +28,7 @@ const FIELDS: { key: keyof CheckoutCustomer; label: string; type: string; span?:
 
 export default function CheckoutPage() {
   const router = useRouter();
+  const { user, isAuthenticated } = useAuth();
   const {
     items, totalItems, totalPrice,
     couponCode, couponDiscount, removeCoupon, clearCart,
@@ -35,6 +37,13 @@ export default function CheckoutPage() {
     name: "", email: "", phone: "", houseNumber: "", street: "", landmark: "", city: "", state: "", pincode: "",
     paymentMethod: "COD",
   });
+
+  // Prefill the account holder's name; email and mobile are asked afresh at checkout.
+  useEffect(() => {
+    if (user?.name) {
+      setForm((current) => (current.name ? current : { ...current, name: user.name }));
+    }
+  }, [user]);
   const [error, setError] = useState("");
   const [placing, setPlacing] = useState(false);
   const [placed, setPlaced] = useState(false);
@@ -124,6 +133,45 @@ export default function CheckoutPage() {
           >
             Explore Products
           </Link>
+        </AnimatedSection>
+      </div>
+    );
+  }
+
+  // Checkout requires a Laoban account.
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-warm-white">
+        <AnimatedSection className="w-full max-w-md px-4">
+          <div className="border border-ivory-dark bg-white p-8 md:p-10 text-center shadow-[0_24px_70px_rgba(26,26,26,0.06)]">
+            <Lock size={40} className="mx-auto mb-5 text-gold" strokeWidth={1.4} />
+            <p className="mb-2 text-xs uppercase tracking-[0.28em] text-gold">Almost There</p>
+            <h1 className="font-display text-3xl text-charcoal mb-3">Sign In to Continue</h1>
+            <p className="mx-auto mb-8 max-w-sm text-sm leading-6 text-warm-gray">
+              Create your Laoban account (or sign in) to complete your order.
+              Your bag is saved and waiting.
+            </p>
+            <div className="space-y-3">
+              <Link
+                href="/auth/login?next=/checkout/"
+                className="flex w-full items-center justify-center gap-2 bg-charcoal py-3 text-sm uppercase tracking-[0.15em] text-white transition-colors hover:bg-gold"
+              >
+                <LogIn size={15} /> Sign In
+              </Link>
+              <Link
+                href="/auth/signup?next=/checkout/"
+                className="flex w-full items-center justify-center gap-2 border border-charcoal py-3 text-sm uppercase tracking-[0.15em] text-charcoal transition-colors hover:bg-charcoal hover:text-white"
+              >
+                <UserPlus size={15} /> Create Account
+              </Link>
+              <Link
+                href="/cart"
+                className="block pt-1 text-center text-sm text-warm-gray transition-colors hover:text-gold"
+              >
+                ← Back to bag
+              </Link>
+            </div>
+          </div>
         </AnimatedSection>
       </div>
     );
