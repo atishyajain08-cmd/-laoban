@@ -21,6 +21,8 @@ interface AuthContextType {
   signup: (name: string, email: string, password: string) => Promise<boolean>;
   logout: () => void;
   updateProfile: (data: Partial<User>) => void;
+  hasAccount: (email: string) => boolean;
+  resetPassword: (email: string, newPassword: string) => Promise<boolean>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -106,6 +108,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     persistSession(null);
   }, []);
 
+  const hasAccount = useCallback((email: string) => {
+    return readAccounts().some(
+      (a) => a.email.toLowerCase() === email.trim().toLowerCase()
+    );
+  }, []);
+
+  // Accounts are stored in this browser, so the password reset happens right
+  // here — no email round-trip exists on the static site.
+  const resetPassword = useCallback(
+    async (email: string, newPassword: string): Promise<boolean> => {
+      await new Promise((r) => setTimeout(r, 400));
+      const accounts = readAccounts();
+      const idx = accounts.findIndex(
+        (a) => a.email.toLowerCase() === email.trim().toLowerCase()
+      );
+      if (idx === -1) return false;
+      accounts[idx] = { ...accounts[idx], password: newPassword };
+      writeAccounts(accounts);
+      return true;
+    },
+    []
+  );
+
   const updateProfile = useCallback((data: Partial<User>) => {
     setUser((prev) => {
       if (!prev) return null;
@@ -121,7 +146,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   return (
     <AuthContext.Provider
-      value={{ user, isAuthenticated: !!user, login, signup, logout, updateProfile }}
+      value={{ user, isAuthenticated: !!user, login, signup, logout, updateProfile, hasAccount, resetPassword }}
     >
       {children}
     </AuthContext.Provider>
