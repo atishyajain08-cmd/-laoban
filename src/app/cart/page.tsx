@@ -5,6 +5,7 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import { Minus, Plus, X, ShoppingBag, Tag, ShieldCheck, Truck, PackageCheck, ArrowRight } from "lucide-react";
 import { useCart } from "@/context/CartContext";
+import { useAuth } from "@/context/AuthContext";
 import { formatPrice } from "@/lib/utils";
 import AnimatedSection from "@/components/ui/AnimatedSection";
 
@@ -16,6 +17,7 @@ export default function CartPage() {
     items, removeItem, updateQuantity, totalItems, totalPrice,
     couponCode, couponDiscount, applyCoupon, removeCoupon,
   } = useCart();
+  const { user } = useAuth();
   const [couponInput, setCouponInput] = useState("");
   const [couponError, setCouponError] = useState("");
 
@@ -61,7 +63,9 @@ export default function CartPage() {
     <div className="min-h-screen bg-warm-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-12">
         <AnimatedSection>
-          <p className="mb-3 text-xs uppercase tracking-[0.28em] text-gold">Shopping Bag</p>
+          <p className="mb-3 text-xs uppercase tracking-[0.28em] text-gold">
+            {user?.name ? `Welcome, ${user.name}` : "Shopping Bag"}
+          </p>
           <h1 className="font-display text-5xl md:text-6xl text-charcoal mb-3">Your Bag</h1>
           <p className="text-warm-gray text-sm mb-8">
             {totalItems} item{totalItems !== 1 ? "s" : ""} · Secure checkout across India
