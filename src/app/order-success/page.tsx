@@ -95,13 +95,27 @@ export default function OrderSuccessPage() {
           <div className="mt-5 grid gap-2.5 border-t border-ivory-dark pt-4 text-xs text-warm-gray">
             <span className="flex items-center gap-2">
               <MessageCircle size={14} className="text-charcoal" />
-              We&apos;ll confirm your order on WhatsApp / phone shortly
+              Confirm your order on WhatsApp below — confirmed orders dispatch first
             </span>
             <span className="flex items-center gap-2">
               <Truck size={14} className="text-charcoal" />
               Delivery in 2–5 business days across India
             </span>
           </div>
+
+          {order && (
+            <a
+              href={`https://wa.me/917696899908?text=${encodeURIComponent(
+                `Hi Laoban! I'm confirming my order ${order.id} (total ₹${order.total.toLocaleString("en-IN")}). — ${order.name}`
+              )}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-5 flex w-full items-center justify-center gap-2 bg-[#25D366] py-3.5 text-sm font-medium uppercase tracking-[0.12em] text-white transition-opacity hover:opacity-90"
+            >
+              <MessageCircle size={17} />
+              Confirm Order on WhatsApp
+            </a>
+          )}
         </motion.div>
 
         {/* Where to next */}
