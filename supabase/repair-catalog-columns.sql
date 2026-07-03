@@ -21,20 +21,44 @@ create unique index if not exists catalog_items_product_code_idx
 
 create table if not exists public.orders (
   id uuid primary key default gen_random_uuid(),
-  order_code text not null unique,
-  customer_name text not null,
-  customer_email text not null,
-  customer_phone text not null,
-  shipping_address jsonb not null default '{}'::jsonb,
-  payment_method text not null default 'COD',
-  status text not null default 'Processing',
-  subtotal integer not null default 0,
-  shipping integer not null default 0,
-  total integer not null default 0,
-  coupon_code text,
-  items jsonb not null default '[]'::jsonb,
   created_at timestamptz not null default now()
 );
+
+-- Support both the original/simple Laoban orders table and the richer checkout schema.
+alter table public.orders
+  add column if not exists order_code text,
+  add column if not exists customer_name text,
+  add column if not exists customer_email text,
+  add column if not exists customer_phone text,
+  add column if not exists shipping_address jsonb not null default '{}'::jsonb,
+  add column if not exists coupon_code text,
+  add column if not exists items jsonb not null default '[]'::jsonb,
+  add column if not exists full_name text,
+  add column if not exists email text,
+  add column if not exists phone text,
+  add column if not exists address text,
+  add column if not exists payment_method text not null default 'COD',
+  add column if not exists status text not null default 'Processing',
+  add column if not exists subtotal integer not null default 0,
+  add column if not exists shipping integer not null default 0,
+  add column if not exists total integer not null default 0;
+
+update public.orders
+set order_code = coalesce(order_code, 'LBN-LEGACY-' || left(id::text, 8)),
+    customer_name = coalesce(customer_name, full_name, ''),
+    customer_email = coalesce(customer_email, email, ''),
+    customer_phone = coalesce(customer_phone, phone, '')
+where order_code is null
+   or customer_name is null
+   or customer_email is null
+   or customer_phone is null;
+
+create unique index if not exists orders_order_code_idx
+  on public.orders (order_code)
+  where order_code is not null;
+
+create index if not exists orders_created_at_idx
+  on public.orders (created_at desc);
 
 alter table public.orders enable row level security;
 
@@ -43,6 +67,21 @@ create policy "Customers can create Laoban orders"
   on public.orders
   for insert
   to anon, authenticated
+  with check (true);
+
+drop policy if exists "Laoban authenticated users can read orders" on public.orders;
+create policy "Laoban authenticated users can read orders"
+  on public.orders
+  for select
+  to authenticated
+  using (true);
+
+drop policy if exists "Laoban authenticated users can update orders" on public.orders;
+create policy "Laoban authenticated users can update orders"
+  on public.orders
+  for update
+  to authenticated
+  using (true)
   with check (true);
 
 notify pgrst, 'reload schema';
