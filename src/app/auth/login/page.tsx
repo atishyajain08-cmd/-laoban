@@ -26,9 +26,9 @@ export default function LoginPage() {
     setError("");
     setLoading(true);
     try {
-      const ok = await login(email, password);
-      if (!ok) {
-        setError("Invalid email or password. New to Laoban? Create an account below.");
+      const result = await login(email, password);
+      if (!result.ok) {
+        setError(result.message || "Invalid email or password.");
         return;
       }
       router.push(nextPath());

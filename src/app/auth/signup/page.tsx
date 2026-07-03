@@ -14,6 +14,7 @@ export default function SignupPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [confirmSent, setConfirmSent] = useState(false);
   const { signup } = useAuth();
   const router = useRouter();
 
@@ -30,9 +31,13 @@ export default function SignupPage() {
     }
     setLoading(true);
     try {
-      const ok = await signup(name, email, password);
-      if (!ok) {
-        setError("An account with this email already exists. Please sign in instead.");
+      const result = await signup(name, email, password);
+      if (!result.ok) {
+        setError(result.message || "Failed to create account.");
+        return;
+      }
+      if (result.needsEmailConfirm) {
+        setConfirmSent(true);
         return;
       }
       const next = new URLSearchParams(window.location.search).get("next");
@@ -59,6 +64,19 @@ export default function SignupPage() {
           <p className="text-warm-gray text-sm mt-1">Join the Laoban club</p>
         </div>
 
+        {confirmSent ? (
+          <div className="text-center py-6">
+            <h3 className="font-display text-lg mb-2 text-charcoal">Confirm Your Email</h3>
+            <p className="text-warm-gray text-sm mb-6">
+              We&apos;ve sent a confirmation link to <strong>{email}</strong>.
+              Open it, then sign in to continue.
+            </p>
+            <Link href="/auth/login" className="text-gold hover:underline text-sm font-medium">
+              Go to Sign In
+            </Link>
+          </div>
+        ) : (
+        <>
         {error && (
           <div className="bg-red-50 border border-red-200 text-red-600 text-sm px-4 py-3 mb-6">{error}</div>
         )}
@@ -106,6 +124,8 @@ export default function SignupPage() {
           Already have an account?{" "}
           <Link href="/auth/login" className="text-gold hover:underline font-medium">Sign In</Link>
         </p>
+        </>
+        )}
       </motion.div>
     </div>
   );

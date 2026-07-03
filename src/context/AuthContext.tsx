@@ -1,6 +1,13 @@
 "use client";
 import { createContext, useContext, useState, useCallback, useEffect, ReactNode } from "react";
 
+// Customer accounts live in Supabase Auth (GoTrue). Passwords are stored
+// hashed by Supabase; password recovery happens via emailed reset links.
+const SUPABASE_URL = "https://lzbdavmurwmrsbfhubtu.supabase.co";
+const ANON_KEY = "sb_publishable_4YMXFJhyg-Gf37mrOweG7g_ISIRDiOF";
+const SESSION_KEY = "laoban_sb_session";
+const SITE_URL = "https://atishyajain08-cmd.github.io/-laoban";
+
 interface User {
   id: string;
   name: string;
@@ -10,143 +17,249 @@ interface User {
   bio?: string;
 }
 
-interface StoredAccount extends User {
-  password: string;
+interface SbSession {
+  access_token: string;
+  refresh_token: string;
+  expires_at: number; // unix seconds
+  user: User;
+}
+
+export interface AuthResult {
+  ok: boolean;
+  message?: string;
+  needsEmailConfirm?: boolean;
 }
 
 interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
-  login: (email: string, password: string) => Promise<boolean>;
-  signup: (name: string, email: string, password: string) => Promise<boolean>;
+  login: (email: string, password: string) => Promise<AuthResult>;
+  signup: (name: string, email: string, password: string) => Promise<AuthResult>;
   logout: () => void;
   updateProfile: (data: Partial<User>) => void;
-  hasAccount: (email: string) => boolean;
-  resetPassword: (email: string, newPassword: string) => Promise<boolean>;
+  requestPasswordReset: (email: string) => Promise<AuthResult>;
+  completePasswordReset: (accessToken: string, newPassword: string) => Promise<AuthResult>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Client-side account store for the static site. Accounts live in the
-// shopper's own browser; swap for Supabase auth when going fully live.
-const ACCOUNTS_KEY = "laoban_accounts";
-const SESSION_KEY = "laoban_session";
+const BASE_HEADERS = { apikey: ANON_KEY, "Content-Type": "application/json" };
 
-function readAccounts(): StoredAccount[] {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function mapUser(sbUser: any): User {
+  const meta = sbUser?.user_metadata || {};
+  return {
+    id: String(sbUser?.id || ""),
+    email: String(sbUser?.email || ""),
+    name: String(meta.full_name || meta.name || sbUser?.email?.split("@")[0] || "Customer"),
+    phone: meta.phone ? String(meta.phone) : undefined,
+    avatar: meta.avatar ? String(meta.avatar) : undefined,
+    bio: meta.bio ? String(meta.bio) : undefined,
+  };
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function friendlyError(payload: any): string {
+  const code = payload?.error_code || payload?.code || "";
+  const raw = String(payload?.msg || payload?.message || payload?.error_description || "");
+  if (code === "invalid_credentials" || /invalid login credentials/i.test(raw))
+    return "Invalid email or password.";
+  if (code === "email_not_confirmed" || /not confirmed/i.test(raw))
+    return "Please confirm your email first — check your inbox for the confirmation link.";
+  if (code === "user_already_exists" || /already registered/i.test(raw))
+    return "An account with this email already exists. Please sign in instead.";
+  if (code === "over_email_send_rate_limit" || /rate limit/i.test(raw))
+    return "Too many emails requested. Please wait a few minutes and try again.";
+  if (/password.*(short|least)/i.test(raw)) return "Password must be at least 8 characters.";
+  return raw || "Something went wrong. Please try again.";
+}
+
+function readSession(): SbSession | null {
   try {
-    const parsed = JSON.parse(localStorage.getItem(ACCOUNTS_KEY) || "[]");
-    return Array.isArray(parsed) ? parsed : [];
+    const raw = localStorage.getItem(SESSION_KEY);
+    return raw ? (JSON.parse(raw) as SbSession) : null;
   } catch {
-    return [];
+    return null;
   }
 }
 
-function writeAccounts(accounts: StoredAccount[]) {
-  localStorage.setItem(ACCOUNTS_KEY, JSON.stringify(accounts));
-}
-
-function toUser(account: StoredAccount): User {
-  const { password: _password, ...user } = account;
-  return user;
+function writeSession(session: SbSession | null) {
+  if (session) localStorage.setItem(SESSION_KEY, JSON.stringify(session));
+  else localStorage.removeItem(SESSION_KEY);
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
 
-  // Restore the session so a signed-in customer stays signed in across visits.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const adoptTokenPayload = useCallback((payload: any): User => {
+    const nextUser = mapUser(payload.user);
+    const session: SbSession = {
+      access_token: payload.access_token,
+      refresh_token: payload.refresh_token,
+      expires_at: payload.expires_at || Math.floor(Date.now() / 1000) + (payload.expires_in || 3600),
+      user: nextUser,
+    };
+    writeSession(session);
+    setUser(nextUser);
+    return nextUser;
+  }, []);
+
+  // Restore (and refresh) the session so customers stay signed in.
   useEffect(() => {
-    try {
-      const raw = localStorage.getItem(SESSION_KEY);
-      if (raw) setUser(JSON.parse(raw) as User);
-    } catch {
-      localStorage.removeItem(SESSION_KEY);
+    const session = readSession();
+    if (!session) return;
+    const stillValid = session.expires_at - 60 > Math.floor(Date.now() / 1000);
+    if (stillValid) {
+      setUser(session.user);
+      return;
     }
-  }, []);
+    (async () => {
+      try {
+        const res = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=refresh_token`, {
+          method: "POST",
+          headers: BASE_HEADERS,
+          body: JSON.stringify({ refresh_token: session.refresh_token }),
+        });
+        const payload = await res.json();
+        if (res.ok && payload.access_token) adoptTokenPayload(payload);
+        else writeSession(null);
+      } catch {
+        // Network hiccup: keep the stored session so the customer isn't logged out offline.
+        setUser(session.user);
+      }
+    })();
+  }, [adoptTokenPayload]);
 
-  const persistSession = (next: User | null) => {
-    if (next) localStorage.setItem(SESSION_KEY, JSON.stringify(next));
-    else localStorage.removeItem(SESSION_KEY);
-  };
-
-  const login = useCallback(async (email: string, password: string): Promise<boolean> => {
-    await new Promise((r) => setTimeout(r, 400));
-    const account = readAccounts().find(
-      (a) => a.email.toLowerCase() === email.trim().toLowerCase()
-    );
-    if (!account || account.password !== password) return false;
-    const next = toUser(account);
-    setUser(next);
-    persistSession(next);
-    return true;
-  }, []);
+  const login = useCallback(
+    async (email: string, password: string): Promise<AuthResult> => {
+      try {
+        const res = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=password`, {
+          method: "POST",
+          headers: BASE_HEADERS,
+          body: JSON.stringify({ email: email.trim(), password }),
+        });
+        const payload = await res.json();
+        if (!res.ok) return { ok: false, message: friendlyError(payload) };
+        adoptTokenPayload(payload);
+        return { ok: true };
+      } catch {
+        return { ok: false, message: "Could not reach the server. Check your connection and try again." };
+      }
+    },
+    [adoptTokenPayload]
+  );
 
   const signup = useCallback(
-    async (name: string, email: string, password: string): Promise<boolean> => {
-      await new Promise((r) => setTimeout(r, 400));
-      const accounts = readAccounts();
-      const exists = accounts.some(
-        (a) => a.email.toLowerCase() === email.trim().toLowerCase()
-      );
-      if (exists) return false;
-      const account: StoredAccount = {
-        id: `LBN-${Date.now().toString(36).toUpperCase()}`,
-        name: name.trim(),
-        email: email.trim(),
-        password,
-      };
-      writeAccounts([...accounts, account]);
-      const next = toUser(account);
-      setUser(next);
-      persistSession(next);
-      return true;
+    async (name: string, email: string, password: string): Promise<AuthResult> => {
+      try {
+        const res = await fetch(`${SUPABASE_URL}/auth/v1/signup`, {
+          method: "POST",
+          headers: BASE_HEADERS,
+          body: JSON.stringify({
+            email: email.trim(),
+            password,
+            data: { full_name: name.trim() },
+          }),
+        });
+        const payload = await res.json();
+        if (!res.ok) return { ok: false, message: friendlyError(payload) };
+        // Session present → email confirmation is off; signed in immediately.
+        if (payload.access_token) {
+          adoptTokenPayload(payload);
+          return { ok: true };
+        }
+        // Duplicate emails come back as a fake user with no identities.
+        if (Array.isArray(payload?.identities) && payload.identities.length === 0) {
+          return { ok: false, message: "An account with this email already exists. Please sign in instead." };
+        }
+        return { ok: true, needsEmailConfirm: true };
+      } catch {
+        return { ok: false, message: "Could not reach the server. Check your connection and try again." };
+      }
     },
-    []
+    [adoptTokenPayload]
   );
 
   const logout = useCallback(() => {
+    const session = readSession();
+    if (session?.access_token) {
+      fetch(`${SUPABASE_URL}/auth/v1/logout`, {
+        method: "POST",
+        headers: { ...BASE_HEADERS, Authorization: `Bearer ${session.access_token}` },
+      }).catch(() => {});
+    }
+    writeSession(null);
     setUser(null);
-    persistSession(null);
   }, []);
-
-  const hasAccount = useCallback((email: string) => {
-    return readAccounts().some(
-      (a) => a.email.toLowerCase() === email.trim().toLowerCase()
-    );
-  }, []);
-
-  // Accounts are stored in this browser, so the password reset happens right
-  // here — no email round-trip exists on the static site.
-  const resetPassword = useCallback(
-    async (email: string, newPassword: string): Promise<boolean> => {
-      await new Promise((r) => setTimeout(r, 400));
-      const accounts = readAccounts();
-      const idx = accounts.findIndex(
-        (a) => a.email.toLowerCase() === email.trim().toLowerCase()
-      );
-      if (idx === -1) return false;
-      accounts[idx] = { ...accounts[idx], password: newPassword };
-      writeAccounts(accounts);
-      return true;
-    },
-    []
-  );
 
   const updateProfile = useCallback((data: Partial<User>) => {
     setUser((prev) => {
       if (!prev) return null;
       const next = { ...prev, ...data };
-      persistSession(next);
-      const accounts = readAccounts().map((a) =>
-        a.id === next.id ? { ...a, ...data } : a
-      );
-      writeAccounts(accounts);
+      const session = readSession();
+      if (session) {
+        writeSession({ ...session, user: next });
+        fetch(`${SUPABASE_URL}/auth/v1/user`, {
+          method: "PUT",
+          headers: { ...BASE_HEADERS, Authorization: `Bearer ${session.access_token}` },
+          body: JSON.stringify({
+            data: { full_name: next.name, phone: next.phone, bio: next.bio, avatar: next.avatar },
+          }),
+        }).catch(() => {});
+      }
       return next;
     });
   }, []);
 
+  const requestPasswordReset = useCallback(async (email: string): Promise<AuthResult> => {
+    try {
+      const redirect = encodeURIComponent(`${SITE_URL}/reset-password/`);
+      const res = await fetch(`${SUPABASE_URL}/auth/v1/recover?redirect_to=${redirect}`, {
+        method: "POST",
+        headers: BASE_HEADERS,
+        body: JSON.stringify({ email: email.trim() }),
+      });
+      if (!res.ok) {
+        const payload = await res.json().catch(() => ({}));
+        return { ok: false, message: friendlyError(payload) };
+      }
+      return { ok: true };
+    } catch {
+      return { ok: false, message: "Could not reach the server. Check your connection and try again." };
+    }
+  }, []);
+
+  const completePasswordReset = useCallback(
+    async (accessToken: string, newPassword: string): Promise<AuthResult> => {
+      try {
+        const res = await fetch(`${SUPABASE_URL}/auth/v1/user`, {
+          method: "PUT",
+          headers: { ...BASE_HEADERS, Authorization: `Bearer ${accessToken}` },
+          body: JSON.stringify({ password: newPassword }),
+        });
+        const payload = await res.json();
+        if (!res.ok) return { ok: false, message: friendlyError(payload) };
+        return { ok: true };
+      } catch {
+        return { ok: false, message: "Could not reach the server. Check your connection and try again." };
+      }
+    },
+    []
+  );
+
   return (
     <AuthContext.Provider
-      value={{ user, isAuthenticated: !!user, login, signup, logout, updateProfile, hasAccount, resetPassword }}
+      value={{
+        user,
+        isAuthenticated: !!user,
+        login,
+        signup,
+        logout,
+        updateProfile,
+        requestPasswordReset,
+        completePasswordReset,
+      }}
     >
       {children}
     </AuthContext.Provider>
