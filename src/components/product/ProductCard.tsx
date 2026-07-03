@@ -32,11 +32,27 @@ export default function ProductCard({ product, index = 0 }: Props) {
     router.push(detailHref);
   };
 
-  const addProductToCart = () => {
-    const size = product.sizes[1] || product.sizes[0];
-    const color = product.colors[0].name;
-    trackAddToCart(product, 1, size, color);
-    addToCart(product, size, color);
+  const [selSize, setSelSize] = useState("");
+  const [selColor, setSelColor] = useState(product.colors[0]?.name ?? "");
+  const [justAdded, setJustAdded] = useState(false);
+
+  // Professional flow: never add silently — open the quick view so the
+  // customer picks a size (and colour) first.
+  const openQuickAdd = () => {
+    setJustAdded(false);
+    setQuickView(true);
+  };
+
+  const confirmAddToCart = () => {
+    if (!selSize) return;
+    trackAddToCart(product, 1, selSize, selColor);
+    addToCart(product, selSize, selColor);
+    setJustAdded(true);
+    window.setTimeout(() => {
+      setQuickView(false);
+      setJustAdded(false);
+      setSelSize("");
+    }, 900);
   };
 
   const toggleWishlist = () => {
@@ -108,9 +124,9 @@ export default function ProductCard({ product, index = 0 }: Props) {
             <motion.button
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.9 }}
-              onClick={addProductToCart}
+              onClick={openQuickAdd}
               className="w-10 h-10 bg-white text-charcoal flex items-center justify-center hover:bg-gold hover:text-white transition-colors shadow-lg"
-              aria-label="Add to cart"
+              aria-label="Choose size and add to cart"
             >
               <ShoppingBag size={18} />
             </motion.button>
@@ -230,12 +246,22 @@ export default function ProductCard({ product, index = 0 }: Props) {
               </a>
             )}
             <div className="mb-4">
-              <p className="text-xs tracking-[0.1em] uppercase font-medium mb-2">Sizes</p>
-              <div className="flex gap-2">
+              <p className="text-xs tracking-[0.1em] uppercase font-medium mb-2">
+                Select Size{" "}
+                {!selSize && (
+                  <span className="text-rose text-[10px] normal-case">— required</span>
+                )}
+              </p>
+              <div className="flex flex-wrap gap-2">
                 {product.sizes.map((s) => (
                   <button
                     key={s}
-                    className="w-10 h-10 border border-ivory-dark text-sm hover:border-gold hover:text-gold transition-colors"
+                    onClick={() => setSelSize(s)}
+                    className={`w-10 h-10 border text-sm transition-colors ${
+                      selSize === s
+                        ? "border-gold bg-gold text-white"
+                        : "border-ivory-dark hover:border-gold hover:text-gold"
+                    }`}
                   >
                     {s}
                   </button>
@@ -243,21 +269,35 @@ export default function ProductCard({ product, index = 0 }: Props) {
               </div>
             </div>
             <div className="mb-6">
-              <p className="text-xs tracking-[0.1em] uppercase font-medium mb-2">Colors</p>
+              <p className="text-xs tracking-[0.1em] uppercase font-medium mb-2">
+                Color: <span className="text-warm-gray normal-case">{selColor}</span>
+              </p>
               <div className="flex gap-2">
                 {product.colors.map((c) => (
                   <button
                     key={c.name}
-                    className="w-8 h-8 rounded-full border-2 border-gray-200 hover:border-gold transition-colors"
+                    onClick={() => setSelColor(c.name)}
+                    className={`w-8 h-8 rounded-full border-2 transition-all ${
+                      selColor === c.name ? "border-gold scale-110" : "border-gray-200 hover:border-gold"
+                    }`}
                     style={{ backgroundColor: c.hex }}
                     title={c.name}
+                    aria-label={`Colour ${c.name}`}
                   />
                 ))}
               </div>
             </div>
+            <button
+              onClick={confirmAddToCart}
+              disabled={!selSize}
+              className="mb-3 flex w-full items-center justify-center gap-2 bg-charcoal py-3 text-sm uppercase tracking-[0.15em] text-white transition-colors hover:bg-gold disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              <ShoppingBag size={16} />
+              {justAdded ? "Added to Bag ✓" : selSize ? "Add to Bag" : "Select a Size First"}
+            </button>
             <Link
               href={detailHref}
-              className="block text-center bg-charcoal text-white py-3 text-sm tracking-[0.15em] uppercase hover:bg-gold transition-colors"
+              className="block text-center border border-charcoal text-charcoal py-3 text-sm tracking-[0.15em] uppercase hover:bg-charcoal hover:text-white transition-colors"
               onClick={() => {
                 trackSelectItem(product);
                 setQuickView(false);
