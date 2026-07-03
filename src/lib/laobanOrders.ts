@@ -96,7 +96,9 @@ async function insertOrderPayload(payload: Record<string, unknown>) {
       apikey: SUPABASE_ANON_KEY,
       Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
       "Content-Type": "application/json",
-      Prefer: "return=representation",
+      // return=minimal: orders are admin-readable only, so asking for the
+      // inserted row back would be blocked by RLS and fail the whole insert.
+      Prefer: "return=minimal",
     },
     body: JSON.stringify(payload),
   });
