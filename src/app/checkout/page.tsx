@@ -9,6 +9,7 @@ import { useAuth } from "@/context/AuthContext";
 import { formatPrice } from "@/lib/utils";
 import AnimatedSection from "@/components/ui/AnimatedSection";
 import { CheckoutCustomer, createLaobanOrder } from "@/lib/laobanOrders";
+import { lookupPincode } from "@/lib/pincode";
 import { trackBeginCheckout, trackPurchase } from "@/lib/analytics";
 
 const FREE_SHIPPING_AT = 2999;
@@ -28,7 +29,7 @@ const FIELDS: { key: keyof CheckoutCustomer; label: string; type: string; span?:
 
 export default function CheckoutPage() {
   const router = useRouter();
-  const { user, isAuthenticated, sendEmailOtp, verifyEmailOtp } = useAuth();
+  const { user, isAuthenticated, sendEmailOtp, verifyEmailOtp, updateProfile } = useAuth();
   const {
     items, totalItems, totalPrice,
     couponCode, couponDiscount, removeCoupon, clearCart,
@@ -38,11 +39,21 @@ export default function CheckoutPage() {
     paymentMethod: "COD",
   });
 
-  // Prefill the account holder's name; email and mobile are asked afresh at checkout.
+  // Auto-fill everything saved on the account; every field stays editable.
   useEffect(() => {
-    if (user?.name) {
-      setForm((current) => (current.name ? current : { ...current, name: user.name }));
-    }
+    if (!user) return;
+    setForm((current) => ({
+      ...current,
+      name: current.name || user.name || "",
+      email: current.email || user.email || "",
+      phone: current.phone || user.phone || "",
+      houseNumber: current.houseNumber || user.houseNumber || "",
+      street: current.street || user.street || "",
+      landmark: current.landmark || user.landmark || "",
+      city: current.city || user.city || "",
+      state: current.state || user.state || "",
+      pincode: current.pincode || user.pincode || "",
+    }));
   }, [user]);
   const [error, setError] = useState("");
   const [placing, setPlacing] = useState(false);
@@ -71,8 +82,20 @@ export default function CheckoutPage() {
     trackBeginCheckout(grandTotal, totalItems);
   }, [grandTotal, items.length, totalItems]);
 
-  const setField = (key: keyof CheckoutCustomer, value: string) =>
+  const setField = (key: keyof CheckoutCustomer, value: string) => {
+    // 6-digit PIN → auto-fill city & state (India only); both stay editable.
+    if (key === "pincode") {
+      const digits = value.replace(/\D/g, "").slice(0, 6);
+      setForm((current) => ({ ...current, pincode: digits }));
+      if (digits.length === 6) {
+        lookupPincode(digits).then((info) => {
+          if (info) setForm((current) => ({ ...current, city: info.city, state: info.state }));
+        });
+      }
+      return;
+    }
     setForm((current) => ({ ...current, [key]: value }));
+  };
 
   // Step 1: validate the form, then email a verification code.
   const placeOrder = async () => {
@@ -155,6 +178,17 @@ export default function CheckoutPage() {
           paymentMethod: form.paymentMethod,
         })
       );
+      // Remember any edited details on the account for the next checkout.
+      updateProfile({
+        name: form.name,
+        phone: form.phone,
+        houseNumber: form.houseNumber,
+        street: form.street,
+        landmark: form.landmark,
+        city: form.city,
+        state: form.state,
+        pincode: form.pincode,
+      });
       setPlaced(true);
       clearCart();
       router.push("/order-success");

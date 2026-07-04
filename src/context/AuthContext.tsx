@@ -15,6 +15,23 @@ interface User {
   avatar?: string;
   phone?: string;
   bio?: string;
+  houseNumber?: string;
+  street?: string;
+  landmark?: string;
+  city?: string;
+  state?: string;
+  pincode?: string;
+}
+
+// Delivery details captured at signup so checkout can prefill them.
+export interface SignupProfile {
+  phone?: string;
+  houseNumber?: string;
+  street?: string;
+  landmark?: string;
+  city?: string;
+  state?: string;
+  pincode?: string;
 }
 
 interface SbSession {
@@ -34,7 +51,7 @@ interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
   login: (email: string, password: string) => Promise<AuthResult>;
-  signup: (name: string, email: string, password: string) => Promise<AuthResult>;
+  signup: (name: string, email: string, password: string, profile?: SignupProfile) => Promise<AuthResult>;
   logout: () => void;
   updateProfile: (data: Partial<User>) => void;
   requestPasswordReset: (email: string) => Promise<AuthResult>;
@@ -57,6 +74,12 @@ function mapUser(sbUser: any): User {
     phone: meta.phone ? String(meta.phone) : undefined,
     avatar: meta.avatar ? String(meta.avatar) : undefined,
     bio: meta.bio ? String(meta.bio) : undefined,
+    houseNumber: meta.house_number ? String(meta.house_number) : undefined,
+    street: meta.street ? String(meta.street) : undefined,
+    landmark: meta.landmark ? String(meta.landmark) : undefined,
+    city: meta.city ? String(meta.city) : undefined,
+    state: meta.state ? String(meta.state) : undefined,
+    pincode: meta.pincode ? String(meta.pincode) : undefined,
   };
 }
 
@@ -155,7 +178,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 
   const signup = useCallback(
-    async (name: string, email: string, password: string): Promise<AuthResult> => {
+    async (name: string, email: string, password: string, profile?: SignupProfile): Promise<AuthResult> => {
       try {
         const res = await fetch(`${SUPABASE_URL}/auth/v1/signup`, {
           method: "POST",
@@ -163,7 +186,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           body: JSON.stringify({
             email: email.trim(),
             password,
-            data: { full_name: name.trim() },
+            data: {
+              full_name: name.trim(),
+              phone: profile?.phone?.trim() || undefined,
+              house_number: profile?.houseNumber?.trim() || undefined,
+              street: profile?.street?.trim() || undefined,
+              landmark: profile?.landmark?.trim() || undefined,
+              city: profile?.city?.trim() || undefined,
+              state: profile?.state?.trim() || undefined,
+              pincode: profile?.pincode?.trim() || undefined,
+            },
           }),
         });
         const payload = await res.json();
@@ -208,7 +240,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           method: "PUT",
           headers: { ...BASE_HEADERS, Authorization: `Bearer ${session.access_token}` },
           body: JSON.stringify({
-            data: { full_name: next.name, phone: next.phone, bio: next.bio, avatar: next.avatar },
+            data: {
+              full_name: next.name,
+              phone: next.phone,
+              bio: next.bio,
+              avatar: next.avatar,
+              house_number: next.houseNumber,
+              street: next.street,
+              landmark: next.landmark,
+              city: next.city,
+              state: next.state,
+              pincode: next.pincode,
+            },
           }),
         }).catch(() => {});
       }
