@@ -272,14 +272,6 @@ function LiveProductContent() {
                   Loading PDF photos
                 </div>
               )}
-              {product.pdfUrl && pdfStatus === "error" && (
-                <a
-                  href={product.pdfUrl}
-                  className="flex h-24 w-24 shrink-0 items-center justify-center border border-ivory-dark bg-white p-3 text-center text-[10px] font-semibold uppercase tracking-[0.12em] text-charcoal hover:border-charcoal md:h-28 md:w-full"
-                >
-                  Open PDF
-                </a>
-              )}
             </div>
 
             <div className="order-1 md:order-2">
@@ -424,25 +416,6 @@ function LiveProductContent() {
               </button>
             </div>
 
-            {product.pdfUrl && pdfStatus === "loading" && (
-              <p className="mt-4 border border-ivory-dark bg-ivory px-4 py-3 text-xs uppercase tracking-[0.14em] text-warm-gray">
-                Preparing PDF photos inside this gallery…
-              </p>
-            )}
-            {product.pdfUrl && pdfStatus === "ready" && (
-              <p className="mt-4 border border-ivory-dark bg-ivory px-4 py-3 text-xs uppercase tracking-[0.14em] text-warm-gray">
-                PDF gallery pages are available in the photo strip.
-              </p>
-            )}
-            {product.pdfUrl && pdfStatus === "error" && (
-              <a
-                href={product.pdfUrl}
-                className="mt-4 flex w-full items-center justify-center border border-charcoal py-3 text-sm uppercase tracking-[0.16em] text-charcoal transition hover:border-gold hover:text-gold"
-              >
-                Open original PDF
-              </a>
-            )}
-
             <div className="mt-8 grid grid-cols-3 gap-3 border-t border-ivory-dark pt-6 text-center">
               {[
                 { icon: Truck, label: `${product.deliveryDays}-day delivery` },
@@ -458,13 +431,6 @@ function LiveProductContent() {
           </aside>
         </section>
 
-        {product.pdfUrl && (
-          <section id="pdf-gallery" className="mt-10 scroll-mt-28 border-t border-ivory-dark pt-5 text-center">
-            <a href={product.pdfUrl} className="text-xs uppercase tracking-[0.16em] text-warm-gray underline underline-offset-4 hover:text-charcoal">
-              Open original PDF file
-            </a>
-          </section>
-        )}
       </div>
       {zoomOpen && (
         <div className="fixed inset-0 z-[80] bg-charcoal/95 p-4 md:p-8" role="dialog" aria-modal="true">
