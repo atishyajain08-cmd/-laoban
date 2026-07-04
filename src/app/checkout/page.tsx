@@ -123,8 +123,8 @@ export default function CheckoutPage() {
   // Step 2: verify the emailed code, then (and only then) save the order.
   const verifyAndPlaceOrder = async () => {
     setError("");
-    if (!/^\d{6}$/.test(otpCode.trim())) {
-      setError("Enter the 6-digit code from your email.");
+    if (!/^\d{6,10}$/.test(otpCode.trim())) {
+      setError("Enter the verification code from your email.");
       return;
     }
     setPlacing(true);
@@ -368,14 +368,14 @@ export default function CheckoutPage() {
                     Verify your order
                   </p>
                   <p className="mt-1.5 text-xs leading-5 text-warm-gray">
-                    We&apos;ve emailed a 6-digit code to{" "}
+                    We&apos;ve emailed a verification code to{" "}
                     <strong className="text-charcoal">{user?.email}</strong>. Enter it to
                     confirm and place your order. (Check spam too.)
                   </p>
                   <input
                     type="text"
                     inputMode="numeric"
-                    maxLength={6}
+                    maxLength={10}
                     value={otpCode}
                     onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ""))}
                     placeholder="••••••"
@@ -384,7 +384,7 @@ export default function CheckoutPage() {
                   />
                   <button
                     onClick={verifyAndPlaceOrder}
-                    disabled={placing || otpCode.length !== 6}
+                    disabled={placing || otpCode.length < 6}
                     className="mt-3 w-full bg-charcoal py-3.5 text-sm font-medium uppercase tracking-[0.15em] text-white transition-colors hover:bg-gold disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     {placing ? "Verifying & Placing…" : `Verify & Place Order · ${formatPrice(grandTotal)}`}
