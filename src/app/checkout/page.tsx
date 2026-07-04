@@ -28,7 +28,7 @@ const FIELDS: { key: keyof CheckoutCustomer; label: string; type: string; span?:
 
 export default function CheckoutPage() {
   const router = useRouter();
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated, sendEmailOtp, verifyEmailOtp } = useAuth();
   const {
     items, totalItems, totalPrice,
     couponCode, couponDiscount, removeCoupon, clearCart,
@@ -49,6 +49,18 @@ export default function CheckoutPage() {
   const [placed, setPlaced] = useState(false);
   const trackedRef = useRef(false);
 
+  // Email OTP gate — the order is only saved after the code verifies.
+  const [otpStage, setOtpStage] = useState<"form" | "code">("form");
+  const [otpCode, setOtpCode] = useState("");
+  const [otpSending, setOtpSending] = useState(false);
+  const [resendIn, setResendIn] = useState(0);
+
+  useEffect(() => {
+    if (resendIn <= 0) return;
+    const t = setTimeout(() => setResendIn((s) => s - 1), 1000);
+    return () => clearTimeout(t);
+  }, [resendIn]);
+
   const subtotal = items.reduce((sum, i) => sum + i.product.price * i.quantity, 0);
   const shipping = subtotal >= FREE_SHIPPING_AT ? 0 : SHIPPING_FEE;
   const grandTotal = totalPrice + shipping;
@@ -62,6 +74,7 @@ export default function CheckoutPage() {
   const setField = (key: keyof CheckoutCustomer, value: string) =>
     setForm((current) => ({ ...current, [key]: value }));
 
+  // Step 1: validate the form, then email a verification code.
   const placeOrder = async () => {
     setError("");
     const missing = FIELDS.find((f) => f.key !== "landmark" && !String(form[f.key]).trim());
@@ -82,7 +95,45 @@ export default function CheckoutPage() {
       return;
     }
 
+    setOtpSending(true);
+    const sent = await sendEmailOtp();
+    setOtpSending(false);
+    if (!sent.ok) {
+      setError(sent.message || "Could not send the verification code. Please try again.");
+      return;
+    }
+    setOtpCode("");
+    setOtpStage("code");
+    setResendIn(60);
+  };
+
+  const resendOtp = async () => {
+    if (resendIn > 0 || otpSending) return;
+    setError("");
+    setOtpSending(true);
+    const sent = await sendEmailOtp();
+    setOtpSending(false);
+    if (!sent.ok) {
+      setError(sent.message || "Could not resend the code. Please try again.");
+      return;
+    }
+    setResendIn(60);
+  };
+
+  // Step 2: verify the emailed code, then (and only then) save the order.
+  const verifyAndPlaceOrder = async () => {
+    setError("");
+    if (!/^\d{6}$/.test(otpCode.trim())) {
+      setError("Enter the 6-digit code from your email.");
+      return;
+    }
     setPlacing(true);
+    const verified = await verifyEmailOtp(otpCode);
+    if (!verified.ok) {
+      setError(verified.message || "That code is incorrect or has expired.");
+      setPlacing(false);
+      return;
+    }
     try {
       const order = await createLaobanOrder({
         customer: form,
@@ -303,13 +354,61 @@ export default function CheckoutPage() {
 
               {error && <p className="mt-4 text-xs text-red-600">{error}</p>}
 
-              <button
-                onClick={placeOrder}
-                disabled={placing}
-                className="mt-5 w-full bg-charcoal py-4 text-sm font-medium uppercase tracking-[0.15em] text-white transition-colors hover:bg-gold disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                {placing ? "Placing Order…" : `Place Order · ${formatPrice(grandTotal)}`}
-              </button>
+              {otpStage === "form" ? (
+                <button
+                  onClick={placeOrder}
+                  disabled={otpSending}
+                  className="mt-5 w-full bg-charcoal py-4 text-sm font-medium uppercase tracking-[0.15em] text-white transition-colors hover:bg-gold disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {otpSending ? "Sending Code…" : `Place Order · ${formatPrice(grandTotal)}`}
+                </button>
+              ) : (
+                <div className="mt-5 border border-gold/40 bg-ivory p-4">
+                  <p className="text-xs font-semibold uppercase tracking-[0.14em] text-charcoal">
+                    Verify your order
+                  </p>
+                  <p className="mt-1.5 text-xs leading-5 text-warm-gray">
+                    We&apos;ve emailed a 6-digit code to{" "}
+                    <strong className="text-charcoal">{user?.email}</strong>. Enter it to
+                    confirm and place your order. (Check spam too.)
+                  </p>
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    maxLength={6}
+                    value={otpCode}
+                    onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ""))}
+                    placeholder="••••••"
+                    className="mt-3 w-full border border-ivory-dark bg-white px-4 py-3 text-center text-xl tracking-[0.5em] focus:border-gold focus:outline-none"
+                    autoFocus
+                  />
+                  <button
+                    onClick={verifyAndPlaceOrder}
+                    disabled={placing || otpCode.length !== 6}
+                    className="mt-3 w-full bg-charcoal py-3.5 text-sm font-medium uppercase tracking-[0.15em] text-white transition-colors hover:bg-gold disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    {placing ? "Verifying & Placing…" : `Verify & Place Order · ${formatPrice(grandTotal)}`}
+                  </button>
+                  <div className="mt-3 flex items-center justify-between text-xs">
+                    <button
+                      onClick={resendOtp}
+                      disabled={resendIn > 0 || otpSending}
+                      className="text-gold disabled:text-warm-gray"
+                    >
+                      {otpSending ? "Sending…" : resendIn > 0 ? `Resend code in ${resendIn}s` : "Resend code"}
+                    </button>
+                    <button
+                      onClick={() => {
+                        setOtpStage("form");
+                        setError("");
+                      }}
+                      className="text-warm-gray hover:text-charcoal"
+                    >
+                      ← Edit details
+                    </button>
+                  </div>
+                </div>
+              )}
 
               <Link
                 href="/cart"

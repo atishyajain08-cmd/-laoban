@@ -39,6 +39,8 @@ interface AuthContextType {
   updateProfile: (data: Partial<User>) => void;
   requestPasswordReset: (email: string) => Promise<AuthResult>;
   completePasswordReset: (accessToken: string, newPassword: string) => Promise<AuthResult>;
+  sendEmailOtp: () => Promise<AuthResult>;
+  verifyEmailOtp: (code: string) => Promise<AuthResult>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -70,6 +72,8 @@ function friendlyError(payload: any): string {
     return "An account with this email already exists. Please sign in instead.";
   if (code === "over_email_send_rate_limit" || /rate limit/i.test(raw))
     return "Too many emails requested. Please wait a few minutes and try again.";
+  if (code === "otp_expired" || /expired or is invalid/i.test(raw))
+    return "That code is incorrect or has expired. Check the digits or resend a fresh code.";
   if (/password.*(short|least)/i.test(raw)) return "Password must be at least 8 characters.";
   return raw || "Something went wrong. Please try again.";
 }
@@ -230,6 +234,51 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  // Order-verification OTP: a 6-digit code emailed to the signed-in
+  // customer's own address; the order is only saved after it verifies.
+  const sendEmailOtp = useCallback(async (): Promise<AuthResult> => {
+    const session = readSession();
+    const email = session?.user?.email;
+    if (!email) return { ok: false, message: "Please sign in again to continue." };
+    try {
+      const res = await fetch(`${SUPABASE_URL}/auth/v1/otp`, {
+        method: "POST",
+        headers: BASE_HEADERS,
+        body: JSON.stringify({ email, create_user: false }),
+      });
+      if (!res.ok) {
+        const payload = await res.json().catch(() => ({}));
+        return { ok: false, message: friendlyError(payload) };
+      }
+      return { ok: true };
+    } catch {
+      return { ok: false, message: "Could not reach the server. Check your connection and try again." };
+    }
+  }, []);
+
+  const verifyEmailOtp = useCallback(
+    async (code: string): Promise<AuthResult> => {
+      const session = readSession();
+      const email = session?.user?.email;
+      if (!email) return { ok: false, message: "Please sign in again to continue." };
+      try {
+        const res = await fetch(`${SUPABASE_URL}/auth/v1/verify`, {
+          method: "POST",
+          headers: BASE_HEADERS,
+          body: JSON.stringify({ type: "email", email, token: code.trim() }),
+        });
+        const payload = await res.json();
+        if (!res.ok) return { ok: false, message: friendlyError(payload) };
+        // Same customer, fresh session — adopt it to stay signed in.
+        if (payload.access_token) adoptTokenPayload(payload);
+        return { ok: true };
+      } catch {
+        return { ok: false, message: "Could not reach the server. Check your connection and try again." };
+      }
+    },
+    [adoptTokenPayload]
+  );
+
   const completePasswordReset = useCallback(
     async (accessToken: string, newPassword: string): Promise<AuthResult> => {
       try {
@@ -259,6 +308,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         updateProfile,
         requestPasswordReset,
         completePasswordReset,
+        sendEmailOtp,
+        verifyEmailOtp,
       }}
     >
       {children}
