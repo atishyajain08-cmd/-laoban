@@ -20,12 +20,19 @@ export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [shopDropdown, setShopDropdown] = useState(false);
-  const [currentUrl, setCurrentUrl] = useState({ pathname: "", search: "" });
+  const [currentUrl, setCurrentUrl] = useState(() => {
+    if (typeof window === "undefined") return { pathname: "", search: "" };
+    return {
+      pathname: window.location.pathname.replace("/-laoban", "") || "/",
+      search: window.location.search,
+    };
+  });
   const { totalItems } = useCart();
   const { totalItems: wishlistCount } = useWishlist();
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 50);
+    onScroll();
     window.addEventListener("scroll", onScroll);
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
@@ -78,17 +85,21 @@ export default function Navbar() {
     const [pathname, search = ""] = href.split("?");
     setCurrentUrl({ pathname, search: search ? `?${search}` : "" });
   };
+  const isHomePage = currentUrl.pathname === "/" || currentUrl.pathname === "";
+  const floatOnHero = isHomePage && !scrolled;
 
   return (
     <>
       {/* Announcement Bar */}
-      <div className="bg-charcoal text-white text-center py-2 text-xs tracking-[0.2em] uppercase">
+      <div className="relative z-50 bg-charcoal text-white text-center py-2 text-xs tracking-[0.2em] uppercase">
         Free delivery across India | Use code <span className="text-gold font-semibold">WELCOME10</span>
       </div>
 
       <motion.header
-        className={`sticky top-0 z-40 transition-all duration-500 ${
-          scrolled ? "glass shadow-lg" : "bg-warm-white"
+        className={`${isHomePage ? "fixed left-0 right-0" : "sticky top-0"} ${
+          floatOnHero ? "top-8" : "top-0"
+        } z-40 transition-all duration-500 ${
+          floatOnHero ? "bg-transparent" : "bg-warm-white/95 shadow-lg backdrop-blur-md"
         }`}
         initial={{ y: -100 }}
         animate={{ y: 0 }}
