@@ -9,13 +9,13 @@ export default function Hero() {
       {/* Background Image */}
       <div className="absolute inset-0">
         <Image
-          src="/-laoban/assets/campaign/laoban-hero-men.png"
-          alt="Laoban premium menswear campaign"
+          src="/-laoban/assets/campaign/laoban-knit-hero.png"
+          alt="Laoban premium knitted T-shirt campaign"
           fill
           className="object-cover object-center"
           priority
         />
-        <div className="absolute inset-0 bg-gradient-to-r from-black/75 via-black/45 to-black/10" />
+        <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/30 to-transparent" />
       </div>
 
       {/* Content */}
@@ -28,7 +28,7 @@ export default function Hero() {
               transition={{ delay: 0.3, duration: 0.8 }}
               className="text-gold text-sm tracking-[0.3em] uppercase mb-4"
             >
-              New Collection 2025
+              Knit Different
             </motion.p>
 
             <motion.h1
@@ -37,9 +37,9 @@ export default function Hero() {
               transition={{ delay: 0.5, duration: 0.8 }}
               className="font-display text-5xl md:text-7xl lg:text-8xl text-white leading-[0.9] mb-6"
             >
-              Redefine
+              Made to Move.
               <br />
-              <span className="text-gradient-gold italic">Elegance</span>
+              <span className="text-gradient-gold italic">Built to Last.</span>
             </motion.h1>
 
             <motion.p
@@ -48,7 +48,7 @@ export default function Hero() {
               transition={{ delay: 0.7, duration: 0.8 }}
               className="text-white/70 text-base md:text-lg mb-8 max-w-md"
             >
-              Discover premium men&apos;s fashion crafted for the modern, confident man. Luxury meets everyday elegance.
+              Premium knitted polos and T-shirts crafted for comfort, movement, and a sharper everyday presence.
             </motion.p>
 
             <motion.div
