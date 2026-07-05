@@ -9,9 +9,6 @@ import { useAuth } from "@/context/AuthContext";
 import { formatPrice } from "@/lib/utils";
 import AnimatedSection from "@/components/ui/AnimatedSection";
 
-const FREE_SHIPPING_AT = 2999;
-const SHIPPING_FEE = 199;
-
 export default function CartPage() {
   const {
     items, removeItem, updateQuantity, totalItems, totalPrice,
@@ -22,9 +19,8 @@ export default function CartPage() {
   const [couponError, setCouponError] = useState("");
 
   const subtotal = items.reduce((sum, i) => sum + i.product.price * i.quantity, 0);
-  const shipping = subtotal >= FREE_SHIPPING_AT ? 0 : SHIPPING_FEE;
-  const grandTotal = totalPrice + shipping;
-  const freeShipProgress = Math.min(100, Math.round((subtotal / FREE_SHIPPING_AT) * 100));
+  // Shipping is absorbed into the MRP — customers pay only the price shown.
+  const grandTotal = totalPrice;
 
   const handleApplyCoupon = () => {
     setCouponError("");
@@ -70,28 +66,6 @@ export default function CartPage() {
           <p className="text-warm-gray text-sm mb-8">
             {totalItems} item{totalItems !== 1 ? "s" : ""} · Secure checkout across India
           </p>
-        </AnimatedSection>
-
-        {/* Free shipping progress */}
-        <AnimatedSection className="mb-10 max-w-xl">
-          <div className="border border-ivory-dark bg-white p-4">
-            <p className="text-xs text-charcoal mb-2">
-              {shipping === 0 ? (
-                <span className="font-semibold text-green-600">🎉 You&apos;ve unlocked FREE shipping!</span>
-              ) : (
-                <>
-                  Add <span className="font-semibold text-gold">{formatPrice(FREE_SHIPPING_AT - subtotal)}</span> more for{" "}
-                  <span className="font-semibold">free shipping</span>
-                </>
-              )}
-            </p>
-            <div className="h-1.5 w-full bg-ivory">
-              <div
-                className="h-1.5 bg-gold transition-all duration-500"
-                style={{ width: `${freeShipProgress}%` }}
-              />
-            </div>
-          </div>
         </AnimatedSection>
 
         <div className="grid lg:grid-cols-3 gap-8">
@@ -200,12 +174,6 @@ export default function CartPage() {
                   <span>-{couponDiscount > 100 ? formatPrice(couponDiscount) : `${couponDiscount}%`}</span>
                 </div>
               )}
-              <div className="flex justify-between">
-                <span className="text-warm-gray">Shipping</span>
-                <span className={shipping === 0 ? "text-green-600" : ""}>
-                  {shipping === 0 ? "Free" : formatPrice(shipping)}
-                </span>
-              </div>
               <div className="border-t border-ivory-dark pt-3 flex justify-between font-semibold text-base">
                 <span>Total</span>
                 <span>{formatPrice(grandTotal)}</span>
@@ -247,7 +215,7 @@ export default function CartPage() {
             <div className="mt-6 grid gap-3 text-xs text-warm-gray">
               {[
                 { icon: ShieldCheck, label: "Safe & secure checkout" },
-                { icon: Truck, label: `Free shipping above ${formatPrice(FREE_SHIPPING_AT)}` },
+                { icon: Truck, label: "Free delivery across India" },
                 { icon: PackageCheck, label: "7-day easy returns" },
               ].map(({ icon: Icon, label }) => (
                 <div key={label} className="flex items-center gap-2">

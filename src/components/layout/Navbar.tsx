@@ -83,7 +83,7 @@ export default function Navbar() {
     <>
       {/* Announcement Bar */}
       <div className="bg-charcoal text-white text-center py-2 text-xs tracking-[0.2em] uppercase">
-        Free shipping on orders above ₹2,999 | Use code <span className="text-gold font-semibold">WELCOME10</span>
+        Free delivery across India | Use code <span className="text-gold font-semibold">WELCOME10</span>
       </div>
 
       <motion.header

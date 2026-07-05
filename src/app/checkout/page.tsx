@@ -12,8 +12,6 @@ import { CheckoutCustomer, createLaobanOrder } from "@/lib/laobanOrders";
 import { lookupPincode } from "@/lib/pincode";
 import { trackBeginCheckout, trackPurchase } from "@/lib/analytics";
 
-const FREE_SHIPPING_AT = 2999;
-const SHIPPING_FEE = 199;
 
 const FIELDS: { key: keyof CheckoutCustomer; label: string; type: string; span?: boolean; placeholder: string }[] = [
   { key: "name", label: "Full name", type: "text", span: true, placeholder: "e.g. Arjun Mehta" },
@@ -73,8 +71,9 @@ export default function CheckoutPage() {
   }, [resendIn]);
 
   const subtotal = items.reduce((sum, i) => sum + i.product.price * i.quantity, 0);
-  const shipping = subtotal >= FREE_SHIPPING_AT ? 0 : SHIPPING_FEE;
-  const grandTotal = totalPrice + shipping;
+  // Shipping is absorbed into the MRP — customers pay only the price shown.
+  const shipping = 0;
+  const grandTotal = totalPrice;
 
   useEffect(() => {
     if (items.length === 0 || trackedRef.current) return;
@@ -373,12 +372,6 @@ export default function CheckoutPage() {
                     <span>-{couponDiscount > 100 ? formatPrice(couponDiscount) : `${couponDiscount}%`}</span>
                   </div>
                 )}
-                <div className="flex justify-between">
-                  <span className="text-warm-gray">Shipping</span>
-                  <span className={shipping === 0 ? "text-green-600" : ""}>
-                    {shipping === 0 ? "Free" : formatPrice(shipping)}
-                  </span>
-                </div>
                 <div className="flex justify-between border-t border-ivory-dark pt-3 text-base font-semibold">
                   <span>Total</span>
                   <span>{formatPrice(grandTotal)}</span>
@@ -454,7 +447,7 @@ export default function CheckoutPage() {
               <div className="mt-6 grid gap-3 text-xs text-warm-gray">
                 {[
                   { icon: ShieldCheck, label: "Your details are stored securely" },
-                  { icon: Truck, label: `Free shipping above ${formatPrice(FREE_SHIPPING_AT)}` },
+                  { icon: Truck, label: "Free delivery across India" },
                   { icon: PackageCheck, label: "7-day easy returns" },
                 ].map(({ icon: Icon, label }) => (
                   <div key={label} className="flex items-center gap-2">
