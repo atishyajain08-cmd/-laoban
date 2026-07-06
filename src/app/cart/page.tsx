@@ -12,15 +12,14 @@ import AnimatedSection from "@/components/ui/AnimatedSection";
 export default function CartPage() {
   const {
     items, removeItem, updateQuantity, totalItems, totalPrice,
-    couponCode, couponDiscount, applyCoupon, removeCoupon,
+    couponCode, couponDiscount, deliveryFee, applyCoupon, removeCoupon,
   } = useCart();
   const { user } = useAuth();
   const [couponInput, setCouponInput] = useState("");
   const [couponError, setCouponError] = useState("");
 
   const subtotal = items.reduce((sum, i) => sum + i.product.price * i.quantity, 0);
-  // Shipping is absorbed into the MRP — customers pay only the price shown.
-  const grandTotal = totalPrice;
+  const grandTotal = totalPrice + deliveryFee;
 
   const handleApplyCoupon = () => {
     setCouponError("");
@@ -174,6 +173,17 @@ export default function CartPage() {
                   <span>-{couponDiscount > 100 ? formatPrice(couponDiscount) : `${couponDiscount}%`}</span>
                 </div>
               )}
+              <div className="flex justify-between">
+                <span className="text-warm-gray">Delivery</span>
+                <span className={deliveryFee === 0 ? "font-semibold text-green-600" : ""}>
+                  {deliveryFee === 0 ? "Free" : formatPrice(deliveryFee)}
+                </span>
+              </div>
+              {deliveryFee > 0 && (
+                <p className="text-[11px] text-gold">
+                  Apply code <span className="font-semibold">WELCOME10</span> for FREE delivery
+                </p>
+              )}
               <div className="border-t border-ivory-dark pt-3 flex justify-between font-semibold text-base">
                 <span>Total</span>
                 <span>{formatPrice(grandTotal)}</span>
@@ -215,7 +225,7 @@ export default function CartPage() {
             <div className="mt-6 grid gap-3 text-xs text-warm-gray">
               {[
                 { icon: ShieldCheck, label: "Safe & secure checkout" },
-                { icon: Truck, label: "Free delivery across India" },
+                { icon: Truck, label: "Free delivery with code WELCOME10" },
                 { icon: PackageCheck, label: "7-day easy returns" },
               ].map(({ icon: Icon, label }) => (
                 <div key={label} className="flex items-center gap-2">

@@ -271,7 +271,7 @@ export default function ProductDetailPage() {
                 {activeTab === "delivery" && (
                   <div className="space-y-2">
                     <p>Standard delivery: {product.deliveryDays} business days</p>
-                    <p>Free delivery across India</p>
+                    <p>Delivery ₹69 — FREE with code WELCOME10</p>
                     <p>Cash on Delivery available</p>
                     <p>Express delivery available in select cities</p>
                   </div>

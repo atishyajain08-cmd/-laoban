@@ -19,6 +19,7 @@ interface CartContextType {
   totalPrice: number;
   couponCode: string;
   couponDiscount: number;
+  deliveryFee: number;
   applyCoupon: (code: string) => boolean;
   removeCoupon: () => void;
 }
@@ -26,6 +27,10 @@ interface CartContextType {
 const CartContext = createContext<CartContextType | undefined>(undefined);
 const CART_STORAGE_KEY = "laoban_next_cart";
 const COUPON_STORAGE_KEY = "laoban_next_coupon";
+
+// Standard delivery is ₹69; these coupon codes waive it (free delivery).
+export const DELIVERY_FEE = 69;
+const FREE_DELIVERY_COUPONS = ["WELCOME10"];
 
 const VALID_COUPONS: Record<string, number> = {
   WELCOME10: 10,
@@ -140,6 +145,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const subtotal = items.reduce((sum, i) => sum + i.product.price * i.quantity, 0);
   const discount = couponDiscount > 100 ? couponDiscount : (subtotal * couponDiscount) / 100;
   const totalPrice = Math.max(0, subtotal - discount);
+  // Free delivery when a qualifying coupon (e.g. WELCOME10) is applied.
+  const deliveryFee = FREE_DELIVERY_COUPONS.includes(couponCode) ? 0 : DELIVERY_FEE;
 
   return (
     <CartContext.Provider
@@ -153,6 +160,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         totalPrice,
         couponCode,
         couponDiscount,
+        deliveryFee,
         applyCoupon,
         removeCoupon,
       }}

@@ -30,7 +30,7 @@ export default function CheckoutPage() {
   const { user, isAuthenticated, sendEmailOtp, verifyEmailOtp, updateProfile } = useAuth();
   const {
     items, totalItems, totalPrice,
-    couponCode, couponDiscount, removeCoupon, clearCart,
+    couponCode, couponDiscount, deliveryFee, removeCoupon, clearCart,
   } = useCart();
   const [form, setForm] = useState<CheckoutCustomer>({
     name: "", email: "", phone: "", houseNumber: "", street: "", landmark: "", city: "", state: "", pincode: "",
@@ -71,9 +71,8 @@ export default function CheckoutPage() {
   }, [resendIn]);
 
   const subtotal = items.reduce((sum, i) => sum + i.product.price * i.quantity, 0);
-  // Shipping is absorbed into the MRP — customers pay only the price shown.
-  const shipping = 0;
-  const grandTotal = totalPrice;
+  const shipping = deliveryFee;
+  const grandTotal = totalPrice + deliveryFee;
 
   useEffect(() => {
     if (items.length === 0 || trackedRef.current) return;
@@ -372,6 +371,17 @@ export default function CheckoutPage() {
                     <span>-{couponDiscount > 100 ? formatPrice(couponDiscount) : `${couponDiscount}%`}</span>
                   </div>
                 )}
+                <div className="flex justify-between">
+                  <span className="text-warm-gray">Delivery</span>
+                  <span className={shipping === 0 ? "font-semibold text-green-600" : ""}>
+                    {shipping === 0 ? "Free" : formatPrice(shipping)}
+                  </span>
+                </div>
+                {shipping > 0 && (
+                  <p className="text-[11px] text-gold">
+                    Apply code <span className="font-semibold">WELCOME10</span> in your bag for FREE delivery
+                  </p>
+                )}
                 <div className="flex justify-between border-t border-ivory-dark pt-3 text-base font-semibold">
                   <span>Total</span>
                   <span>{formatPrice(grandTotal)}</span>
@@ -447,7 +457,7 @@ export default function CheckoutPage() {
               <div className="mt-6 grid gap-3 text-xs text-warm-gray">
                 {[
                   { icon: ShieldCheck, label: "Your details are stored securely" },
-                  { icon: Truck, label: "Free delivery across India" },
+                  { icon: Truck, label: "Free delivery with code WELCOME10" },
                   { icon: PackageCheck, label: "7-day easy returns" },
                 ].map(({ icon: Icon, label }) => (
                   <div key={label} className="flex items-center gap-2">
