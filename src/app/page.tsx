@@ -3,7 +3,6 @@ import { useEffect } from "react";
 import dynamic from "next/dynamic";
 import Hero from "@/components/home/Hero";
 import FeaturedCollections from "@/components/home/FeaturedCollections";
-import NewArrivals from "@/components/home/NewArrivals";
 import BestSellers from "@/components/home/BestSellers";
 import Testimonials from "@/components/home/Testimonials";
 import InstagramGrid from "@/components/home/InstagramGrid";
@@ -37,9 +36,8 @@ export default function Home() {
   return (
     <>
       <Hero />
-      <FeaturedCollections />
-      <NewArrivals />
       <LiveCatalog compact />
+      <FeaturedCollections />
       <LiveCatalog
         compact
         section="lookbook"
