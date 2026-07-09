@@ -88,7 +88,7 @@ export default function ProductCard({ product, index = 0 }: Props) {
       >
         {/* Image */}
         <div className="relative aspect-[3/4] overflow-hidden bg-ivory mb-4">
-          <Link href={detailHref} onClick={() => trackSelectItem(product)} className="block h-full w-full">
+          <Link href={detailHref} onClick={() => trackSelectItem(product)} className="relative block h-full w-full">
             <Image
               src={product.images[0]}
               alt={product.name}

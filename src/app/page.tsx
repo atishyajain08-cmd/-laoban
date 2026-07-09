@@ -36,7 +36,13 @@ export default function Home() {
   return (
     <>
       <Hero />
-      <LiveCatalog compact />
+      <LiveCatalog
+        compact
+        section="new-arrivals"
+        eyebrow="Just Dropped"
+        title="New Arrivals"
+        description="Products uploaded under New Arrivals in Laoban Admin appear here automatically."
+      />
       <FeaturedCollections />
       <LiveCatalog
         compact

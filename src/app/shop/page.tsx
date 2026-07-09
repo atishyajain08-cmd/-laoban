@@ -9,6 +9,7 @@ import { products } from "@/data/products";
 import { categories } from "@/data/categories";
 
 type SortOption = "newest" | "price-low" | "price-high" | "rating";
+const SHOP_PRICE_MAX = 10000;
 
 export default function ShopPage() {
   return (
@@ -53,7 +54,7 @@ function ShopContent() {
   const [selectedColors, setSelectedColors] = useState<string[]>([]);
   const [selectedBadges, setSelectedBadges] = useState<string[]>([]);
   const [sortBy, setSortBy] = useState<SortOption>("newest");
-  const [priceRange, setPriceRange] = useState<[number, number]>([0, 2000]);
+  const [priceRange, setPriceRange] = useState<[number, number]>([0, SHOP_PRICE_MAX]);
   const [showFilters, setShowFilters] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -76,7 +77,7 @@ function ShopContent() {
     setSelectedSizes([]);
     setSelectedColors([]);
     setSelectedBadges([]);
-    setPriceRange([0, 2000]);
+    setPriceRange([0, SHOP_PRICE_MAX]);
     setSearchQuery("");
     setSortBy("newest");
   };
@@ -140,7 +141,7 @@ function ShopContent() {
     + selectedSizes.length
     + selectedColors.length
     + selectedBadges.length
-    + (priceRange[0] !== 0 || priceRange[1] !== 2000 ? 1 : 0)
+    + (priceRange[0] !== 0 || priceRange[1] !== SHOP_PRICE_MAX ? 1 : 0)
     + (searchQuery ? 1 : 0);
 
   return (
@@ -226,11 +227,12 @@ function ShopContent() {
                 <p className="text-xs tracking-[0.1em] uppercase font-medium mb-3">Price Range</p>
                 <div className="space-y-2">
                   {[
-                    [0, 2000, "All Prices"],
+                    [0, SHOP_PRICE_MAX, "All Prices"],
                     [0, 1000, "Under ₹1,000"],
                     [1000, 1200, "₹1,000 – ₹1,200"],
                     [1200, 1400, "₹1,200 – ₹1,400"],
-                    [1400, 2000, "₹1,400+"],
+                    [1400, 2500, "₹1,400 – ₹2,500"],
+                    [2500, SHOP_PRICE_MAX, "₹2,500+"],
                   ].map(([min, max, label]) => (
                     <button
                       key={label as string}

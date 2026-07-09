@@ -87,6 +87,35 @@
     })[character]);
   }
 
+  function urlPath(url) {
+    if (!url) return "";
+    try {
+      return new URL(url, window.location.href).pathname.toLowerCase();
+    } catch {
+      return String(url || "").toLowerCase().split("?")[0];
+    }
+  }
+
+  function isPdfUrl(url) {
+    return urlPath(url).endsWith(".pdf");
+  }
+
+  function isImageUrl(url) {
+    return /\.(png|jpe?g|webp|gif|avif|svg)$/i.test(urlPath(url));
+  }
+
+  function firstImageUrl(candidates) {
+    return candidates.filter(Boolean).find((url) => !isPdfUrl(url) && isImageUrl(url)) || "assets/products/basic-white-tee.svg";
+  }
+
+  function firstPdfUrl(candidates) {
+    return candidates.filter(Boolean).find((url) => isPdfUrl(url)) || "";
+  }
+
+  function hasMime(file, prefix) {
+    return Boolean(file?.size > 0 && String(file.type || "").startsWith(prefix));
+  }
+
   function inventoryFromDescription(description) {
     const match = String(description || "").match(/\[laoban_stock:S=(\d+),M=(\d+),L=(\d+),XL=(\d+)(?:,XXL=(\d+))?\]/);
     return match ? { S: Number(match[1]), M: Number(match[2]), L: Number(match[3]), XL: Number(match[4]), XXL: Number(match[5] || 0) } : null;
@@ -284,11 +313,19 @@
       const code = item.product_code || meta.product_code || productCodeFromDescription(item.description) || "No code";
       const colors = Array.isArray(item.colors) ? item.colors : meta.colors;
       const colorName = Array.isArray(colors) && colors[0]?.name ? colors[0].name : "Color not set";
-      const pdfUrl = item.pdf_url || meta.pdf_url;
+      const mediaCandidates = [
+        item.thumbnail_url || meta.thumbnail_url,
+        item.image_url || meta.image_url,
+        item.pdf_url || meta.pdf_url,
+        ...(Array.isArray(item.gallery_urls) ? item.gallery_urls : []),
+        ...(Array.isArray(meta.gallery_urls) ? meta.gallery_urls : [])
+      ];
+      const thumbnailUrl = firstImageUrl(mediaCandidates);
+      const pdfUrl = firstPdfUrl(mediaCandidates);
       const filtersText = `${item.product_type || meta.product_type || "Product"} · ${item.fit || meta.fit || "Fit"} · ${colorName} · ${item.material || meta.material || "Material"}${item.badge || meta.badge ? ` · ${item.badge || meta.badge}` : ""}${pdfUrl ? " · PDF gallery" : ""}`;
       return `
       <article class="admin-item">
-        <img src="${escapeHtml(item.thumbnail_url || meta.thumbnail_url || item.image_url || meta.image_url || "assets/white-tshirt.svg")}" alt="${escapeHtml(item.title)}">
+        <img src="${escapeHtml(thumbnailUrl)}" alt="${escapeHtml(item.title)}">
         <div><strong>${escapeHtml(item.title)}</strong><span>${escapeHtml(code)} · ${escapeHtml(filtersText)}</span><small>${stockText}</small></div>
         <button class="icon-button" type="button" data-delete-id="${escapeHtml(item.id)}" data-storage-path="${escapeHtml(item.storage_path)}" data-thumbnail-storage-path="${escapeHtml(item.thumbnail_storage_path)}" data-pdf-storage-path="${escapeHtml(item.pdf_storage_path)}" aria-label="Remove ${escapeHtml(item.title)}"><i data-lucide="trash-2"></i></button>
       </article>`;
@@ -479,6 +516,18 @@
     if (!files.length && !(pdfFile?.size > 0) && !(thumbnailFile?.size > 0)) {
       submitButton.disabled = false;
       return message(addMessage, "Upload a product PDF, a product photo, or a thumbnail.", "error");
+    }
+    if (thumbnailFile?.size > 0 && !hasMime(thumbnailFile, "image/")) {
+      submitButton.disabled = false;
+      return message(addMessage, "The frontend thumbnail must be a JPG, PNG, or WebP image. Do not upload the PDF in the thumbnail field.", "error");
+    }
+    if (pdfFile?.size > 0 && pdfFile.type !== "application/pdf" && !String(pdfFile.name || "").toLowerCase().endsWith(".pdf")) {
+      submitButton.disabled = false;
+      return message(addMessage, "The PDF gallery field must contain the product PDF, not a JPG thumbnail.", "error");
+    }
+    if (files.some((file) => !hasMime(file, "image/"))) {
+      submitButton.disabled = false;
+      return message(addMessage, "Extra product photos must be image files only.", "error");
     }
     if (pdfFile?.size > 0 && !(thumbnailFile?.size > 0) && !files.length) {
       submitButton.disabled = false;

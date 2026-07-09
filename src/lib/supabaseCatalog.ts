@@ -55,6 +55,23 @@ function usableImage(url?: string) {
   return `/-laoban/${url}`;
 }
 
+function urlPath(url?: string) {
+  if (!url) return "";
+  try {
+    return new URL(url, "https://laoban.local").pathname.toLowerCase();
+  } catch {
+    return url.toLowerCase().split("?")[0];
+  }
+}
+
+function isPdfUrl(url?: string) {
+  return urlPath(url).endsWith(".pdf");
+}
+
+function isImageUrl(url?: string) {
+  return /\.(png|jpe?g|webp|gif|avif|svg)$/i.test(urlPath(url));
+}
+
 function itemToProduct(item: CatalogItem): Product {
   const meta = metaFromDescription(item.description);
   const inventory = inventoryFromDescription(item.description);
@@ -62,15 +79,19 @@ function itemToProduct(item: CatalogItem): Product {
     ? (["S", "M", "L", "XL", "XXL"] as const).filter((size) => Number(inventory[size]) > 0)
     : ["S", "M", "L", "XL", "XXL"];
 
-  const galleryImages = [
+  const mediaCandidates = [
     item.thumbnail_url || meta.thumbnail_url,
     item.image_url || meta.image_url,
+    item.pdf_url || meta.pdf_url,
     ...(Array.isArray(item.gallery_urls) ? item.gallery_urls : []),
     ...(Array.isArray(meta.gallery_urls) ? meta.gallery_urls : []),
-  ]
-    .filter(Boolean)
+  ].filter(Boolean) as string[];
+
+  const galleryImages = mediaCandidates
+    .filter((url) => !isPdfUrl(url) && isImageUrl(url))
     .map((url) => usableImage(url))
     .filter((url, index, all) => all.indexOf(url) === index);
+  const pdfUrl = mediaCandidates.find((url) => isPdfUrl(url));
 
   return {
     id: `live-${item.id}`,
@@ -82,7 +103,7 @@ function itemToProduct(item: CatalogItem): Product {
     description: cleanDescription(item.description) || "Premium Laoban menswear piece from the live catalog.",
     category: item.product_type?.toLowerCase() || meta.product_type?.toLowerCase() || item.section || "live catalog",
     subcategory: item.fit || meta.fit || item.label || "Laoban",
-    images: galleryImages.length ? galleryImages : [usableImage(item.thumbnail_url || meta.thumbnail_url || item.image_url || meta.image_url)],
+    images: galleryImages.length ? galleryImages : [usableImage()],
     sizes: sizes.length ? sizes : ["S", "M", "L", "XL", "XXL"],
     colors: Array.isArray(item.colors) && item.colors.length
       ? item.colors
@@ -95,7 +116,7 @@ function itemToProduct(item: CatalogItem): Product {
     inStock: !inventory || Object.values(inventory).some((stock) => stock > 0),
     deliveryDays: 3,
     isLiveCatalog: true,
-    pdfUrl: item.pdf_url || meta.pdf_url,
+    pdfUrl,
     galleryImages,
   };
 }
