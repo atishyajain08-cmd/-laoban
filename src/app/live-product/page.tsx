@@ -172,25 +172,39 @@ function LiveProductContent() {
       .then(async (pdfjsLib) => {
         const pdf = await pdfjsLib.getDocument({ url: product.pdfUrl! }).promise;
         const pageCount = Math.min(pdf.numPages, 10);
-        const renderedPages: string[] = [];
+        let renderedCount = 0;
 
-        for (let pageNumber = 1; pageNumber <= pageCount; pageNumber += 1) {
-          const page = await pdf.getPage(pageNumber);
-          const viewport = page.getViewport({ scale: 1.65 });
-          const canvas = document.createElement("canvas");
-          const canvasContext = canvas.getContext("2d");
+        for (let pageNumber = 1; pageNumber <= pageCount && active; pageNumber += 1) {
+          try {
+            const page = await pdf.getPage(pageNumber);
+            // Cap the render width: large scanned PDFs at full scale exceed
+            // mobile canvas limits and the render silently fails.
+            const baseViewport = page.getViewport({ scale: 1 });
+            const scale = Math.min(1.65, 1600 / baseViewport.width);
+            const viewport = page.getViewport({ scale });
+            const canvas = document.createElement("canvas");
+            const canvasContext = canvas.getContext("2d");
 
-          if (!canvasContext) continue;
+            if (!canvasContext) continue;
 
-          canvas.width = viewport.width;
-          canvas.height = viewport.height;
-          await page.render({ canvasContext, viewport }).promise;
-          renderedPages.push(canvas.toDataURL("image/jpeg", 0.9));
+            canvas.width = viewport.width;
+            canvas.height = viewport.height;
+            await page.render({ canvasContext, viewport }).promise;
+            const pageImage = canvas.toDataURL("image/jpeg", 0.9);
+
+            if (!active) return;
+            renderedCount += 1;
+            // Show each page as soon as it's ready — big PDFs would otherwise
+            // leave the customer staring at nothing until all pages finish.
+            setPdfPageImages((current) => [...current, pageImage]);
+            setPdfStatus("ready");
+          } catch {
+            // A single failed page shouldn't hide the rest of the gallery.
+          }
         }
 
         if (!active) return;
-        setPdfPageImages(renderedPages);
-        setPdfStatus(renderedPages.length ? "ready" : "error");
+        if (!renderedCount) setPdfStatus("error");
       })
       .catch(() => {
         if (active) setPdfStatus("error");

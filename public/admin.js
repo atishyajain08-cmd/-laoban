@@ -544,7 +544,10 @@
       const fallbackNote = strippedColumns.length
         ? ` Missing Supabase columns were bypassed: ${Array.from(new Set(strippedColumns)).join(", ")}.`
         : "";
-      message(addMessage, `${records.length} product${records.length === 1 ? "" : "s"} published successfully.${fallbackNote}`, "success");
+      const pdfSizeNote = pdfFile?.size > 8 * 1024 * 1024
+        ? ` Note: the PDF is ${(pdfFile.size / (1024 * 1024)).toFixed(1)} MB — its gallery will load slowly for customers. Compress it under 5 MB for a faster page.`
+        : "";
+      message(addMessage, `${records.length} product${records.length === 1 ? "" : "s"} published successfully.${fallbackNote}${pdfSizeNote}`, "success");
     } catch (error) {
       const uploadedPaths = records.flatMap((record) => [record.storage_path, record.thumbnail_storage_path, record.pdf_storage_path]).filter(Boolean);
       if (uploadedPaths.length) await client.storage.from("catalog").remove(uploadedPaths);
