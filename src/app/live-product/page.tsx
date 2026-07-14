@@ -8,6 +8,7 @@ import { Product } from "@/data/products";
 import { useCart } from "@/context/CartContext";
 import { useWishlist } from "@/context/WishlistContext";
 import { fetchLiveCatalogProductById } from "@/lib/supabaseCatalog";
+import RelatedProducts from "@/components/product/RelatedProducts";
 import { formatPrice } from "@/lib/utils";
 import { trackAddToCart, trackAddToWishlist, trackViewItem } from "@/lib/analytics";
 
@@ -446,6 +447,12 @@ function LiveProductContent() {
         </section>
 
       </div>
+
+      <RelatedProducts
+        name={product.name}
+        description={product.description}
+        excludeId={product.liveCatalogId || product.id}
+      />
       {zoomOpen && (
         <div className="fixed inset-0 z-[80] bg-charcoal/95 p-4 md:p-8" role="dialog" aria-modal="true">
           <button

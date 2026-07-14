@@ -44,7 +44,7 @@ function ShopContent() {
     product: {
       eyebrow: "Products",
       title: "Products",
-      description: "Only products uploaded under Product section in Laoban Admin appear here.",
+      description: "Every product in the Laoban catalog appears here, from every section.",
     },
   };
   const activeSectionCopy = activeShopSection ? sectionLabels[activeShopSection] : undefined;
