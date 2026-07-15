@@ -250,25 +250,27 @@ export default function ProductCard({ product, index = 0 }: Props) {
                 ))}
               </div>
             </div>
-            <div className="mb-6">
-              <p className="text-xs tracking-[0.1em] uppercase font-medium mb-2">
-                Color: <span className="text-warm-gray normal-case">{selColor}</span>
-              </p>
-              <div className="flex gap-2">
-                {product.colors.map((c) => (
-                  <button
-                    key={c.name}
-                    onClick={() => setSelColor(c.name)}
-                    className={`w-8 h-8 rounded-full border-2 transition-all ${
-                      selColor === c.name ? "border-gold scale-110" : "border-gray-200 hover:border-gold"
-                    }`}
-                    style={{ backgroundColor: c.hex }}
-                    title={c.name}
-                    aria-label={`Colour ${c.name}`}
-                  />
-                ))}
+            {product.colors.length > 0 && (
+              <div className="mb-6">
+                <p className="text-xs tracking-[0.1em] uppercase font-medium mb-2">
+                  Color: <span className="text-warm-gray normal-case">{selColor}</span>
+                </p>
+                <div className="flex gap-2">
+                  {product.colors.map((c) => (
+                    <button
+                      key={c.name}
+                      onClick={() => setSelColor(c.name)}
+                      className={`w-8 h-8 rounded-full border-2 transition-all ${
+                        selColor === c.name ? "border-gold scale-110" : "border-gray-200 hover:border-gold"
+                      }`}
+                      style={{ backgroundColor: c.hex }}
+                      title={c.name}
+                      aria-label={`Colour ${c.name}`}
+                    />
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
             <button
               onClick={confirmAddToCart}
               disabled={!selSize}

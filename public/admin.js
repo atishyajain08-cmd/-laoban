@@ -18,6 +18,21 @@
   let arrivalCategoryField = document.querySelector("[data-arrival-category-field]");
   let arrivalCategorySelect = arrivalCategoryField?.querySelector("select");
   let ordersInterval = null;
+  let adminItemsCache = new Map();
+  let editingItemId = null;
+  let editingItem = null;
+  let cancelEditButton = null;
+
+  // Only store a colour when the admin actually typed one; if no hex was
+  // given, the colour NAME doubles as the swatch (CSS names: red, navy, ...).
+  function colorEntry(values) {
+    const name = String(values.color_name || "").trim();
+    if (!name) return [];
+    const hex = /^#[0-9A-Fa-f]{6}$/.test(String(values.color_hex || "").trim())
+      ? String(values.color_hex).trim()
+      : name.toLowerCase();
+    return [{ name, hex }];
+  }
 
   function ensureUploadFields() {
     if (!addForm || !sectionSelect) return;
@@ -51,6 +66,82 @@
         <label>XXL pieces<input type="number" name="stock_xxl" min="0" step="1" value="2" required></label>`;
       addForm.querySelector("input[type='file']")?.closest("label").insertAdjacentElement("beforebegin", stock);
     }
+
+    if (!addForm.querySelector("[data-cancel-edit]")) {
+      const submitButton = addForm.querySelector("button[type='submit']");
+      cancelEditButton = document.createElement("button");
+      cancelEditButton.type = "button";
+      cancelEditButton.dataset.cancelEdit = "";
+      cancelEditButton.hidden = true;
+      cancelEditButton.textContent = "Cancel editing";
+      cancelEditButton.className = submitButton?.className || "";
+      submitButton?.insertAdjacentElement("afterend", cancelEditButton);
+      cancelEditButton.addEventListener("click", () => {
+        addForm.reset();
+        updateArrivalCategoryField();
+        exitEditMode();
+        message(addMessage, "Edit cancelled.");
+      });
+    } else {
+      cancelEditButton = addForm.querySelector("[data-cancel-edit]");
+    }
+  }
+
+  function exitEditMode() {
+    editingItemId = null;
+    editingItem = null;
+    const submitButton = addForm?.querySelector("button[type='submit']");
+    if (submitButton?.dataset.originalText) submitButton.textContent = submitButton.dataset.originalText;
+    if (cancelEditButton) cancelEditButton.hidden = true;
+  }
+
+  function setFormValue(name, value) {
+    const field = addForm?.elements?.[name];
+    if (field) field.value = value ?? "";
+  }
+
+  function startEditItem(item) {
+    if (!addForm) return;
+    const meta = metaFromDescription(item.description);
+    const inventory = inventoryFromDescription(item.description) || { S: 3, M: 3, L: 3, XL: 3, XXL: 2 };
+    const colors = (Array.isArray(item.colors) && item.colors.length ? item.colors : meta.colors) || [];
+    const cleanDesc = String(item.description || "")
+      .replace(/\s*\[laoban_stock:S=\d+,M=\d+,L=\d+,XL=\d+(?:,XXL=\d+)?\]\s*/g, "")
+      .replace(/\s*\[laoban_meta:[^\]]+\]\s*/g, "")
+      .trim();
+
+    editingItemId = item.id;
+    editingItem = item;
+
+    setFormValue("product_code", item.product_code || meta.product_code || "");
+    setFormValue("title", item.title || "");
+    setFormValue("description", cleanDesc);
+    setFormValue("price", item.price || 0);
+    setFormValue("product_type", item.product_type || meta.product_type || "T-Shirt");
+    setFormValue("fit", item.fit || meta.fit || "Regular");
+    setFormValue("material", item.material || meta.material || "Cotton");
+    setFormValue("color_name", colors[0]?.name || "");
+    setFormValue("color_hex", /^#[0-9A-Fa-f]{6}$/.test(colors[0]?.hex || "") ? colors[0].hex : "");
+    setFormValue("badge", item.badge || meta.badge || "");
+    setFormValue("section", item.section || "product");
+    updateArrivalCategoryField();
+    if (sectionSelect?.value === "new-arrivals") setFormValue("arrival_category", item.label || "");
+    setFormValue("stock_s", inventory.S);
+    setFormValue("stock_m", inventory.M);
+    setFormValue("stock_l", inventory.L);
+    setFormValue("stock_xl", inventory.XL);
+    setFormValue("stock_xxl", inventory.XXL);
+
+    const submitButton = addForm.querySelector("button[type='submit']");
+    if (submitButton) {
+      if (!submitButton.dataset.originalText) submitButton.dataset.originalText = submitButton.textContent;
+      submitButton.textContent = "Update product";
+    }
+    if (cancelEditButton) cancelEditButton.hidden = false;
+
+    document.querySelector("[data-admin-mode='add']")?.click();
+    addForm.scrollIntoView({ behavior: "smooth", block: "start" });
+    message(addMessage, `Editing "${item.title}". Change any details and press Update product. Leave the file fields empty to keep the current photos and PDF.`);
   }
 
   ensureUploadFields();
@@ -136,7 +227,7 @@
       product_type: values.product_type || "T-Shirt",
       fit: values.fit || "Regular",
       material: values.material || "Cotton",
-      colors: [{ name: values.color_name || "Pure White", hex: values.color_hex || "#FFFFFF" }],
+      colors: colorEntry(values),
       badge: values.badge || "",
       thumbnail_url: thumbnailUrl || "",
       thumbnail_storage_path: asset.thumbnailPath || asset.imagePath || "",
@@ -209,7 +300,7 @@
       product_type: values.product_type || "T-Shirt",
       fit: values.fit || "Regular",
       material: values.material || "Cotton",
-      colors: [{ name: values.color_name || "Pure White", hex: values.color_hex || "#FFFFFF" }],
+      colors: colorEntry(values),
       badge: values.badge || null,
       section: values.section,
       label: values.section === "new-arrivals"
@@ -295,6 +386,23 @@
     throw new Error("Supabase catalog schema is missing too many columns. Please run supabase/repair-catalog-columns.sql.");
   }
 
+  async function updateCatalogRecord(id, record) {
+    const payload = { ...record };
+    delete payload.sort_order; // keep the item's existing position
+    const strippedColumns = [];
+    for (let attempt = 0; attempt < 16; attempt += 1) {
+      const { error } = await client.from("catalog_items").update(payload).eq("id", id);
+      if (!error) return strippedColumns;
+
+      const missingColumn = missingCatalogColumn(error);
+      if (!missingColumn) throw error;
+
+      strippedColumns.push(missingColumn);
+      delete payload[missingColumn];
+    }
+    throw new Error("Supabase catalog schema is missing too many columns. Please run supabase/repair-catalog-columns.sql.");
+  }
+
   async function loadAdminItems() {
     if (!client || !itemsRoot) return;
     itemsRoot.innerHTML = "<p>Loading catalog...</p>";
@@ -304,6 +412,7 @@
       message(removeMessage, error.message, "error");
       return;
     }
+    adminItemsCache = new Map((data || []).map((row) => [String(row.id), row]));
     itemsRoot.innerHTML = (data || []).map((item) => {
       const meta = metaFromDescription(item.description);
       const inventory = inventoryFromDescription(item.description);
@@ -327,6 +436,7 @@
       <article class="admin-item">
         <img src="${escapeHtml(thumbnailUrl)}" alt="${escapeHtml(item.title)}">
         <div><strong>${escapeHtml(item.title)}</strong><span>${escapeHtml(code)} · ${escapeHtml(filtersText)}</span><small>${stockText}</small></div>
+        <button class="icon-button" type="button" data-edit-id="${escapeHtml(item.id)}" aria-label="Edit ${escapeHtml(item.title)}"><i data-lucide="pencil"></i></button>
         <button class="icon-button" type="button" data-delete-id="${escapeHtml(item.id)}" data-storage-path="${escapeHtml(item.storage_path)}" data-thumbnail-storage-path="${escapeHtml(item.thumbnail_storage_path)}" data-pdf-storage-path="${escapeHtml(item.pdf_storage_path)}" aria-label="Remove ${escapeHtml(item.title)}"><i data-lucide="trash-2"></i></button>
       </article>`;
     }).join("") || "<p>No uploaded products yet.</p>";
@@ -509,11 +619,15 @@
       submitButton.disabled = false;
       return message(addMessage, "Enter a valid price greater than zero.", "error");
     }
-    if (!/^#[0-9A-Fa-f]{6}$/.test(String(values.color_hex || ""))) {
+    if (!String(values.color_name || "").trim()) {
       submitButton.disabled = false;
-      return message(addMessage, "Enter a valid color hex code like #FFFFFF.", "error");
+      return message(addMessage, "Enter the product's real color name, e.g. Red, Navy, Black.", "error");
     }
-    if (!files.length && !(pdfFile?.size > 0) && !(thumbnailFile?.size > 0)) {
+    if (String(values.color_hex || "").trim() && !/^#[0-9A-Fa-f]{6}$/.test(String(values.color_hex).trim())) {
+      submitButton.disabled = false;
+      return message(addMessage, "Color hex must look like #C41E1E — or leave it empty to use the color name.", "error");
+    }
+    if (!editingItemId && !files.length && !(pdfFile?.size > 0) && !(thumbnailFile?.size > 0)) {
       submitButton.disabled = false;
       return message(addMessage, "Upload a product PDF, a product photo, or a thumbnail.", "error");
     }
@@ -529,10 +643,57 @@
       submitButton.disabled = false;
       return message(addMessage, "Extra product photos must be image files only.", "error");
     }
-    if (pdfFile?.size > 0 && !(thumbnailFile?.size > 0) && !files.length) {
+    if (!editingItemId && pdfFile?.size > 0 && !(thumbnailFile?.size > 0) && !files.length) {
       submitButton.disabled = false;
       return message(addMessage, "Upload a frontend thumbnail photo also. The PDF is the gallery; the thumbnail is what customers see first.", "error");
     }
+
+    // EDIT MODE: update the existing row, keeping current media unless replaced.
+    if (editingItemId && editingItem) {
+      message(addMessage, "Updating product...");
+      try {
+        const existingMeta = metaFromDescription(editingItem.description);
+        let uploadedThumbnail = null;
+        let uploadedPdf = null;
+        const uploadedProducts = [];
+        if (thumbnailFile?.size > 0) uploadedThumbnail = await uploadCatalogFile(thumbnailFile, "thumbnail");
+        if (pdfFile?.size > 0) uploadedPdf = await uploadCatalogFile(pdfFile, "pdf");
+        for (const file of files) uploadedProducts.push(await uploadCatalogFile(file, "product"));
+
+        const existingGalleryUrls = Array.isArray(editingItem.gallery_urls) && editingItem.gallery_urls.length
+          ? editingItem.gallery_urls
+          : Array.isArray(existingMeta.gallery_urls) ? existingMeta.gallery_urls : [];
+        const existingGalleryPaths = Array.isArray(existingMeta.gallery_storage_paths) ? existingMeta.gallery_storage_paths : [];
+
+        const asset = {
+          imageUrl: uploadedProducts[0]?.publicUrl || editingItem.image_url || existingMeta.image_url,
+          imagePath: uploadedProducts[0]?.path || editingItem.storage_path || null,
+          thumbnailUrl: uploadedThumbnail?.publicUrl || editingItem.thumbnail_url || existingMeta.thumbnail_url || uploadedProducts[0]?.publicUrl,
+          thumbnailPath: uploadedThumbnail?.path || editingItem.thumbnail_storage_path || existingMeta.thumbnail_storage_path || null,
+          pdfUrl: uploadedPdf?.publicUrl || editingItem.pdf_url || existingMeta.pdf_url || "",
+          pdfPath: uploadedPdf?.path || editingItem.pdf_storage_path || existingMeta.pdf_storage_path || null,
+          galleryUrls: uploadedProducts.length ? uploadedProducts.map((u) => u.publicUrl) : existingGalleryUrls,
+          galleryPaths: uploadedProducts.length ? uploadedProducts.map((u) => u.path) : existingGalleryPaths
+        };
+        const record = buildRecord(values, asset);
+        const strippedColumns = await updateCatalogRecord(editingItemId, record);
+        localStorage.setItem("laoban_catalog_updated_at", String(Date.now()));
+        addForm.reset();
+        updateArrivalCategoryField();
+        exitEditMode();
+        const fallbackNote = strippedColumns.length
+          ? ` Missing Supabase columns were bypassed: ${Array.from(new Set(strippedColumns)).join(", ")}.`
+          : "";
+        message(addMessage, `Product updated successfully.${fallbackNote}`, "success");
+        loadAdminItems();
+      } catch (error) {
+        message(addMessage, friendlyUploadError(error), "error");
+      } finally {
+        submitButton.disabled = false;
+      }
+      return;
+    }
+
     message(addMessage, "Uploading product...");
     let records = [];
     try {
@@ -558,6 +719,13 @@
   });
 
   itemsRoot?.addEventListener("click", async (event) => {
+    const editButton = event.target.closest("[data-edit-id]");
+    if (editButton) {
+      const item = adminItemsCache.get(String(editButton.dataset.editId));
+      if (item) startEditItem(item);
+      else message(removeMessage, "Could not load this product for editing. Refresh and try again.", "error");
+      return;
+    }
     const button = event.target.closest("[data-delete-id]");
     if (!button || !client) return;
     button.disabled = true;

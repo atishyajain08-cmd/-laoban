@@ -108,7 +108,8 @@ export default function OrdersPage() {
                             <div>
                               <p className="text-charcoal">{item.product.name}</p>
                               <p className="text-xs text-warm-gray mt-0.5">
-                                Size {item.size} · {item.color} · Qty {item.quantity}
+                                Size {item.size}
+                                {item.color ? ` · ${item.color}` : ""} · Qty {item.quantity}
                               </p>
                             </div>
                             <span className="font-medium">{formatPrice(item.product.price * item.quantity)}</span>

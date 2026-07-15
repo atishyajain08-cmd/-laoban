@@ -347,7 +347,8 @@ export default function CheckoutPage() {
                     <div className="flex-1">
                       <p className="text-xs font-medium text-charcoal line-clamp-2">{item.product.name}</p>
                       <p className="mt-1 text-[10px] uppercase tracking-[0.12em] text-warm-gray">
-                        Size {item.size} · {item.color}
+                        Size {item.size}
+                        {item.color ? ` · ${item.color}` : ""}
                       </p>
                     </div>
                     <span className="text-xs font-semibold">{formatPrice(item.product.price * item.quantity)}</span>

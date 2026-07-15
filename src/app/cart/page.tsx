@@ -108,9 +108,11 @@ export default function CartPage() {
                       <span className="border border-ivory-dark bg-ivory px-2 py-0.5 text-[10px] uppercase tracking-[0.12em] text-charcoal">
                         Size {item.size}
                       </span>
-                      <span className="border border-ivory-dark bg-ivory px-2 py-0.5 text-[10px] uppercase tracking-[0.12em] text-charcoal">
-                        {item.color}
-                      </span>
+                      {item.color && (
+                        <span className="border border-ivory-dark bg-ivory px-2 py-0.5 text-[10px] uppercase tracking-[0.12em] text-charcoal">
+                          {item.color}
+                        </span>
+                      )}
                       <span className="text-[10px] uppercase tracking-[0.12em] text-warm-gray">
                         {item.product.productCode}
                       </span>

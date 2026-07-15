@@ -251,7 +251,8 @@ function LiveProductContent() {
   const selectedImageUrl = galleryImages[selectedImage] || product.images[0];
 
   const addToCart = () => {
-    if (!selectedSize || !selectedColor) return;
+    // Colour is only required when the product actually has colour options.
+    if (!selectedSize || (product.colors.length > 0 && !selectedColor)) return;
     trackAddToCart(product, quantity, selectedSize, selectedColor);
     addItem(product, selectedSize, selectedColor, quantity);
   };
@@ -360,24 +361,26 @@ function LiveProductContent() {
               </div>
             </div>
 
-            <div className="mt-7">
-              <p className="mb-3 text-xs font-semibold uppercase tracking-[0.16em]">
-                Color: <span className="text-warm-gray">{selectedColor}</span>
-              </p>
-              <div className="flex flex-wrap gap-3">
-                {product.colors.map((color) => (
-                  <button
-                    key={color.name}
-                    onClick={() => setSelectedColor(color.name)}
-                    className={`h-11 w-11 rounded-full border-2 transition ${
-                      selectedColor === color.name ? "border-charcoal scale-110" : "border-gray-200"
-                    }`}
-                    style={{ backgroundColor: color.hex }}
-                    title={color.name}
-                  />
-                ))}
+            {product.colors.length > 0 && (
+              <div className="mt-7">
+                <p className="mb-3 text-xs font-semibold uppercase tracking-[0.16em]">
+                  Color: <span className="text-warm-gray">{selectedColor}</span>
+                </p>
+                <div className="flex flex-wrap gap-3">
+                  {product.colors.map((color) => (
+                    <button
+                      key={color.name}
+                      onClick={() => setSelectedColor(color.name)}
+                      className={`h-11 w-11 rounded-full border-2 transition ${
+                        selectedColor === color.name ? "border-charcoal scale-110" : "border-gray-200"
+                      }`}
+                      style={{ backgroundColor: color.hex }}
+                      title={color.name}
+                    />
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
 
             <div className="mt-7">
               <p className="mb-3 text-xs font-semibold uppercase tracking-[0.16em]">Quantity</p>
@@ -411,7 +414,7 @@ function LiveProductContent() {
             <div className="mt-8 flex gap-3">
               <button
                 onClick={addToCart}
-                disabled={!selectedSize || !selectedColor}
+                disabled={!selectedSize || (product.colors.length > 0 && !selectedColor)}
                 className="flex flex-1 items-center justify-center gap-2 bg-charcoal py-4 text-sm uppercase tracking-[0.16em] text-white transition hover:bg-gold disabled:cursor-not-allowed disabled:opacity-40"
               >
                 <ShoppingBag size={18} />

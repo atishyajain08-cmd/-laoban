@@ -72,6 +72,24 @@ function isImageUrl(url?: string) {
   return /\.(png|jpe?g|webp|gif|avif|svg)$/i.test(urlPath(url));
 }
 
+function normalizeColors(raw: unknown): { name: string; hex: string }[] {
+  if (!Array.isArray(raw)) return [];
+  return raw
+    .filter((c): c is { name: string; hex?: string } => Boolean(c && typeof c === "object" && (c as { name?: string }).name))
+    .map((c) => {
+      const name = String(c.name).trim();
+      const hex = String(c.hex || "").trim();
+      // Old uploads defaulted hex to white — when the *name* says otherwise,
+      // trust the name (browsers render CSS color names like "red", "navy").
+      const looksDefaultWhite = !hex || hex.toUpperCase() === "#FFFFFF";
+      const nameIsWhite = /white|ivory|cream/i.test(name);
+      return {
+        name,
+        hex: looksDefaultWhite && !nameIsWhite ? name.toLowerCase() : hex || "#FFFFFF",
+      };
+    });
+}
+
 function itemToProduct(item: CatalogItem): Product {
   const meta = metaFromDescription(item.description);
   const inventory = inventoryFromDescription(item.description);
@@ -105,11 +123,10 @@ function itemToProduct(item: CatalogItem): Product {
     subcategory: item.fit || meta.fit || item.label || "Laoban",
     images: galleryImages.length ? galleryImages : [usableImage()],
     sizes: sizes.length ? sizes : ["S", "M", "L", "XL", "XXL"],
-    colors: Array.isArray(item.colors) && item.colors.length
-      ? item.colors
-      : Array.isArray(meta.colors) && meta.colors.length
-      ? meta.colors
-      : [{ name: "Pure White", hex: "#FFFFFF" }],
+    colors: (() => {
+      const own = normalizeColors(item.colors);
+      return own.length ? own : normalizeColors(meta.colors);
+    })(),
     rating: 4.8,
     reviews: 0,
     badge: item.badge || meta.badge || "new",
