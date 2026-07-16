@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { Eye, EyeOff, UserCircle2, LogOut, ShoppingBag } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
+import GoogleButton from "@/components/auth/GoogleButton";
+import { suggestEmail } from "@/lib/emailHint";
 
 function nextPath(): string {
   if (typeof window === "undefined") return "/dashboard";
@@ -101,6 +103,8 @@ export default function LoginPage() {
           <div className="bg-red-50 border border-red-200 text-red-600 text-sm px-4 py-3 mb-6">{error}</div>
         )}
 
+        <GoogleButton nextPath={nextPath()} />
+
         <form onSubmit={handleSubmit} className="space-y-5">
           <div>
             <label className="block text-xs tracking-[0.1em] uppercase font-medium mb-2">Email</label>
@@ -112,6 +116,15 @@ export default function LoginPage() {
               className="w-full px-4 py-3 border border-ivory-dark focus:outline-none focus:border-gold text-sm"
               placeholder="you@example.com"
             />
+            {suggestEmail(email) && (
+              <button
+                type="button"
+                onClick={() => setEmail(suggestEmail(email) || email)}
+                className="mt-1.5 text-xs text-gold hover:underline"
+              >
+                Did you mean <strong>{suggestEmail(email)}</strong>? Tap to fix
+              </button>
+            )}
           </div>
           <div>
             <label className="block text-xs tracking-[0.1em] uppercase font-medium mb-2">Password</label>

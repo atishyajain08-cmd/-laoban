@@ -6,6 +6,8 @@ import { motion } from "framer-motion";
 import { Eye, EyeOff, MapPin } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { lookupPincode } from "@/lib/pincode";
+import GoogleButton from "@/components/auth/GoogleButton";
+import { suggestEmail } from "@/lib/emailHint";
 
 const inputClass =
   "w-full px-4 py-3 border border-ivory-dark focus:outline-none focus:border-gold text-sm";
@@ -127,6 +129,8 @@ export default function SignupPage() {
           <div className="bg-red-50 border border-red-200 text-red-600 text-sm px-4 py-3 mb-6">{error}</div>
         )}
 
+        <GoogleButton />
+
         <form onSubmit={handleSubmit} className="space-y-5">
           <div>
             <label className={labelClass}>Full Name</label>
@@ -138,6 +142,15 @@ export default function SignupPage() {
               <label className={labelClass}>Email</label>
               <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required
                 className={inputClass} placeholder="you@example.com" />
+              {suggestEmail(email) && (
+                <button
+                  type="button"
+                  onClick={() => setEmail(suggestEmail(email) || email)}
+                  className="mt-1.5 text-xs text-gold hover:underline"
+                >
+                  Did you mean <strong>{suggestEmail(email)}</strong>? Tap to fix
+                </button>
+              )}
             </div>
             <div>
               <label className={labelClass}>Mobile Number</label>

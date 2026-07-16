@@ -58,6 +58,9 @@ interface AuthContextType {
   completePasswordReset: (accessToken: string, newPassword: string) => Promise<AuthResult>;
   sendEmailOtp: () => Promise<AuthResult>;
   verifyEmailOtp: (code: string) => Promise<AuthResult>;
+  googleEnabled: boolean;
+  loginWithGoogle: (nextPath?: string) => void;
+  completeOAuthLogin: (hash: string) => Promise<AuthResult>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -72,7 +75,7 @@ function mapUser(sbUser: any): User {
     email: String(sbUser?.email || ""),
     name: String(meta.full_name || meta.name || sbUser?.email?.split("@")[0] || "Customer"),
     phone: meta.phone ? String(meta.phone) : undefined,
-    avatar: meta.avatar ? String(meta.avatar) : undefined,
+    avatar: meta.avatar ? String(meta.avatar) : meta.avatar_url ? String(meta.avatar_url) : undefined,
     bio: meta.bio ? String(meta.bio) : undefined,
     houseNumber: meta.house_number ? String(meta.house_number) : undefined,
     street: meta.street ? String(meta.street) : undefined,
@@ -117,6 +120,16 @@ function writeSession(session: SbSession | null) {
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
+  const [googleEnabled, setGoogleEnabled] = useState(false);
+
+  // Show the Google button only when the provider is actually configured in
+  // Supabase — it appears automatically once the dashboard setup is done.
+  useEffect(() => {
+    fetch(`${SUPABASE_URL}/auth/v1/settings`, { headers: { apikey: ANON_KEY } })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((settings) => setGoogleEnabled(Boolean(settings?.external?.google)))
+      .catch(() => {});
+  }, []);
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const adoptTokenPayload = useCallback((payload: any): User => {
@@ -277,6 +290,46 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  // Google sign-in: redirect to Supabase's OAuth flow; tokens come back on
+  // /auth/callback/ in the URL hash, consumed by completeOAuthLogin below.
+  const loginWithGoogle = useCallback((nextPath?: string) => {
+    try {
+      sessionStorage.setItem("laoban_oauth_next", nextPath && nextPath.startsWith("/") ? nextPath : "/dashboard");
+    } catch {
+      /* private mode — fall back to dashboard after login */
+    }
+    const redirect = encodeURIComponent(`${SITE_URL}/auth/callback/`);
+    window.location.href = `${SUPABASE_URL}/auth/v1/authorize?provider=google&redirect_to=${redirect}`;
+  }, []);
+
+  const completeOAuthLogin = useCallback(
+    async (hash: string): Promise<AuthResult> => {
+      const params = new URLSearchParams(hash.replace(/^#/, ""));
+      const accessToken = params.get("access_token");
+      if (!accessToken) {
+        const detail = params.get("error_description") || params.get("error");
+        return { ok: false, message: detail || "Google sign-in did not complete. Please try again." };
+      }
+      try {
+        const res = await fetch(`${SUPABASE_URL}/auth/v1/user`, {
+          headers: { apikey: ANON_KEY, Authorization: `Bearer ${accessToken}` },
+        });
+        if (!res.ok) return { ok: false, message: "Could not verify the Google sign-in. Please try again." };
+        const sbUser = await res.json();
+        adoptTokenPayload({
+          access_token: accessToken,
+          refresh_token: params.get("refresh_token") || "",
+          expires_in: Number(params.get("expires_in") || "3600"),
+          user: sbUser,
+        });
+        return { ok: true };
+      } catch {
+        return { ok: false, message: "Could not reach the server. Check your connection and try again." };
+      }
+    },
+    [adoptTokenPayload]
+  );
+
   // Order-verification OTP: a 6-digit code emailed to the signed-in
   // customer's own address; the order is only saved after it verifies.
   const sendEmailOtp = useCallback(async (): Promise<AuthResult> => {
@@ -353,6 +406,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         completePasswordReset,
         sendEmailOtp,
         verifyEmailOtp,
+        googleEnabled,
+        loginWithGoogle,
+        completeOAuthLogin,
       }}
     >
       {children}
