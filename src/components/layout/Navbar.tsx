@@ -191,8 +191,9 @@ export default function Navbar() {
             <div className="flex items-center justify-end gap-2 justify-self-end md:gap-4">
               <button
                 onClick={() => setSearchOpen(!searchOpen)}
-                className="p-2 hover:text-gold transition-colors"
+                className="p-2 text-charcoal transition-colors md:hover:text-gold"
                 aria-label="Search"
+                aria-expanded={searchOpen}
               >
                 <Search size={20} />
               </button>
@@ -238,7 +239,7 @@ export default function Navbar() {
                   <input
                     type="text"
                     placeholder="Search for tees, polos, outerwear..."
-                    className="w-full pl-12 pr-4 py-3 bg-ivory border border-ivory-dark text-charcoal placeholder:text-warm-gray focus:outline-none focus:border-gold text-sm tracking-wide"
+                    className="w-full pl-12 pr-4 py-3 bg-white border border-ivory-dark text-charcoal placeholder:text-warm-gray focus:outline-none focus:border-charcoal text-sm tracking-wide"
                     autoFocus
                   />
                 </div>

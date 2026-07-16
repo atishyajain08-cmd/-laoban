@@ -148,7 +148,7 @@ function ShopContent() {
     <div className="min-h-screen bg-warm-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 md:py-10">
         {/* Toolbar */}
-        <div className="sticky top-[4.75rem] z-30 mb-8 flex flex-wrap items-center justify-between gap-4 border border-ivory-dark bg-warm-white/95 p-3 shadow-[0_18px_50px_rgba(26,26,26,0.06)] backdrop-blur md:top-[5.5rem] md:p-4">
+        <div className="mb-8 flex flex-wrap items-center justify-between gap-4 border border-ivory-dark bg-warm-white p-3 shadow-[0_18px_50px_rgba(26,26,26,0.06)] md:p-4">
           <div className="flex items-center gap-4">
             <button
               onClick={() => setShowFilters(!showFilters)}
